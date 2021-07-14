@@ -1,1 +1,26 @@
-'My Project' 
+WelCome to Baseball of LYC
+
+크롤링 및 통계관련 코드 저장소
+
+
+/statistics -------------------
+
+  base - 통계분석 부모 클래스(초기값 및 Database)
+
+  preprocess - 데이터 분석을 위한 전처리 클래스
+
+  sample - random sample 생성 및 gradient descent를 통한 모수추정
+
+  exploratory - 탐색적 자료분석 클래스
+
+
+/crawling -------------------
+
+  crawling_base - 크롤링 부모 클래스
+
+  crawling_kbo - kbo사이트 크롤링
+
+  crawling_today_toto - 경기 배당 크롤링
+
+  crawling_wisetoto_all - 과거 배당 크롤링
+
