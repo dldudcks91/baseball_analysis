@@ -1,6 +1,6 @@
 #%%
 import sys
-sys.path.append('C:\\Users\\Chan\\Desktop\\BaseballProject\\python')
+sys.path.append('D:\\BaseballProject\\python')
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
@@ -17,11 +17,14 @@ import numpy as np
 
 import pymysql
 
-from baseball_2021 import base as bs
+from baseball import base as bs
 #%%
 
 class Crawling(bs.Database):
+    '''
+    크롤링 기본 base
     
+    '''
     def __init__(self):
         self.today_date = None
         self.craw_time = None
@@ -53,8 +56,7 @@ class Crawling(bs.Database):
         self.craw_time = str(today.hour).zfill(2) + ":" +str(today.minute).zfill(2)
         self.update_time_array = np.array([self.today_date, self.craw_time, craw_type]).reshape(1,-1)
         
-    def update_craw_time(self):
-        conn = pymysql.connect(host='localhost', user='root', password='dudrn1', db='baseball', charset='utf8')
+    def update_craw_time(self,conn):
         cursor = conn.cursor()
         
         for data in self.update_time_array:

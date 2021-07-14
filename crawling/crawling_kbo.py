@@ -25,7 +25,7 @@ class Crawling_kbo(cb.Crawling):
     '''
     Class Crawling
     
-        KBO에서 제공하는 경기 기록 데이터 크롤링 및 저장하는 Class
+        KBO에서 제공하는 경기 기록 크롤링
         
     '''
     
