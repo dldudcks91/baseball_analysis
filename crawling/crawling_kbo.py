@@ -671,14 +671,14 @@ class Crawling_kbo(cb.Crawling):
         self.lineup_array = lineup_array[1:]
     
     
-    def end_game_crawling(self):
+    def end_game_crawling(self, conn):
         '''
         끝난 경기 데이터 크롤링
         '''
         self.set_craw_time(1)
         year = self.date//10000
         
-        conn  = pymysql.connect(host='localhost', user='root', password='dudrn1', db='baseball', charset='utf8')
+        conn = conn
         conn.begin()
     
     
@@ -742,12 +742,11 @@ class Crawling_kbo(cb.Crawling):
             print('error')
 
 
-    def start_game_crawling(self):
+    def start_game_crawling(self, conn):
         
         self.set_craw_time(1)
         year = self.date//10000
-        conn  = pymysql.connect(host='localhost', user='root', password='dudrn1', db='baseball', charset='utf8')
-        self.conn = conn
+        conn = conn 
         conn.begin()
         
         

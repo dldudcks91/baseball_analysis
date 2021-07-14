@@ -26,23 +26,21 @@ from crawling import crawling_base as cb
 class Crawling_today_toto(cb.Crawling):
     def __init__(self):
         
-        self.toto_array = np.empty((1,21))
+        
         self.driver = None
         self.year = None
         self.game_round = None
         
         
         self.today_game_info_array = None
-        self.livescore_array = None
-        self.fieldone_array = None
+        self.toto_first_array = None
+        self.toto_second_array = None
         self.toto_array = None
         
+
         
-        
-        
-        
-    def set_today_game_info(self):
-        conn = pymysql.connect(host='localhost', user='root', password='dudrn1', db='baseball', charset='utf8')
+    def set_today_game_info(self, conn):
+        conn = conn
         cursor = conn.cursor()
 
         sql = 'select * from today_game_info'
@@ -51,8 +49,8 @@ class Crawling_today_toto(cb.Crawling):
         conn.close()
         self.today_game_info_array = today_game_info_array
 
-    def craw_livescore(self):
-        self.driver.get('https://livescore.co.kr/sports/score_board/baseball_score.php')
+    def craw_toto_first(self, url):
+        self.driver.get(url)
         prev_button = self.driver.find_element_by_xpath('//*[@id="score_top"]/ul[2]/li[5]/a[1]')
         next_button = self.driver.find_element_by_xpath('//*[@id="score_top"]/ul[2]/li[5]/a[3]')
         
@@ -102,13 +100,13 @@ class Crawling_today_toto(cb.Crawling):
         result_array = old_array[1:]
         
         
-        self.livescore_array = result_array
+        self.toto_first_array = result_array
             
-    def craw_fieldone(self):
-        self.driver.get('http://fo-ac.com/')
+    def craw_toto_second(self, url, login_id, login_code):
+        self.driver.get(url)
 
-        self.driver.find_element_by_xpath('//*[@id="memid"]').send_keys('dldudcks91')
-        self.driver.find_element_by_xpath('//*[@id="mempwd"]').send_keys('dudrn1')
+        self.driver.find_element_by_xpath('//*[@id="memid"]').send_keys(login_id)
+        self.driver.find_element_by_xpath('//*[@id="mempwd"]').send_keys(login_code)
         self.driver.find_element_by_xpath('//*[@id="btnLogin"]').click()
         WebDriverWait(self.driver,5).until(expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="menuJoinBet"]')))
         self.driver.find_element_by_xpath('//*[@id="menuJoinBet"]').click()
@@ -166,16 +164,16 @@ class Crawling_today_toto(cb.Crawling):
                 new_list.append(self.craw_time)
                 old_array = np.vstack([old_array,new_list])
         result_array = old_array[1:]
-        self.fieldone_array = result_array
+        self.toto_second_array = result_array
         
-    def craw_toto_all(self):
+    def craw_toto_all(self, url_first, url_second, login_id, login_code):
         self.set_craw_time(2)
         self.driver_start()
-        self.craw_livescore()
-        self.craw_fieldone()
+        self.craw_toto_first(url_first)
+        self.craw_toto_second(url_second, login_id, login_code)
         toto_array = np.zeros((1,10))
-        toto_array = np.vstack([toto_array,self.livescore_array])
-        toto_array = np.vstack([toto_array,self.fieldone_array])
+        toto_array = np.vstack([toto_array,self.toto_first_array])
+        toto_array = np.vstack([toto_array,self.toto_second_array])
         self.toto_array = toto_array[1:]
         self.driver.close()
 #%%
