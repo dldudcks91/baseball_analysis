@@ -12,7 +12,10 @@ import numpy as np
 
 #%%
 
-class Crawling_wisetoto:
+class Crawling_wisetoto():
+    '''
+    wisetoto 사이트에 있는 야구배당정보 가져오기
+    '''
     def __init__(self):
         
         self.toto_array = np.empty((1,21))
@@ -229,56 +232,4 @@ class Crawling_wisetoto:
         self.toto_array = np.vstack([self.toto_array,new_list])     
 
                     
-#%%
 
-c = Crawling_wisetoto()
-
-c.driver_start()
-#%%
-year = 2021
-
-error_list = list()
-while year<=2021:
-    c.set_year(year)    
-    game_round = 1
-    while True:
-    
-        try:
-            while True:
-                c.set_round(game_round)
-                if len(c.round_data)!=17:
-                    break
-            game_round +=1
-            
-        except:
-            
-            break
-        
-        data_len = len(c.round_data)
-        data_num = 0
-        error_list.append([game_round,data_len])
-        while True:
-            if data_num >= data_len:
-                break
-            data = c.round_data[data_num]
-            c.find_data_by_game(data)
-            data_num+=1
-            
-        
-    year+=1
-#%%
-toto_array = c.toto_array[1:,:]
-rate_mask = (toto_array[:,7]==1)
-year_mask = (toto_array[:,0]==2020)
-lg_home_mask = (toto_array[:,9]=="LG")
-z1 = pd.DataFrame(toto_array[rate_mask&year_mask])
-#%%
-toto_array = c.toto_array[1:,:]
-
-toto_df = pd.DataFrame(toto_array)
-
-#%%
-toto_df.to_csv('C:\\Users\\Chan\\Desktop\\crawling_toto_baseball14.csv',encoding = 'cp949')
-
-#%%
-z = pd.DataFrame(c.toto_array)

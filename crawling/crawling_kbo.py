@@ -1,6 +1,7 @@
 #%%
 import sys
-sys.path.append('C:\\Users\\Chan\\Desktop\\BaseballProject\\python')
+sys.path.append('D:\BaseballProject\\python')
+
 
 # crawling관련 library 불러오기
 
@@ -17,10 +18,10 @@ import numpy as np
 import pymysql
 import datetime
 
-from baseball_2021.crawling import crawling
+from crawling import crawling_base as cb
 #%%
 
-class Crawling_baseball(crawling.Crawling):
+class Crawling_kbo(cb.Crawling):
     '''
     Class Crawling
     
