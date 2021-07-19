@@ -2,11 +2,11 @@
 
 # 불러오기 위치 설정
 import sys
-sys.path.append('C:\\Users\\Chan\\Desktop\\BaseballProject\\python')
+sys.path.append('D:\\BaseballProject\\python')
 
 import numpy as np
 import pandas as pd
-from statistics import base as bs
+from bs_stats import base as bs
 
 #%%
 class Preprocess(bs.Database):

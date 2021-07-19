@@ -1,6 +1,6 @@
 #%%
 import sys
-sys.path.append('C:\\Users\\Chan\\Desktop\\BaseballProject\\python')
+sys.path.append('D:\\BaseballProject\\python')
 
 #%%
 import numpy as np
@@ -8,27 +8,34 @@ import pandas as pd
 import math
 import scipy
 import scipy.stats as stats
-import baseball.baseball as bs
-import baseball.baseball_mod as md
-import baseball.sample as sp
+
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
 
-from baseball import base as bs
-from baseball import preprocess as pr
-from baseball import sample as sp
+from bs_stats import base as bs
+from bs_stats import preprocess as pr
+from bs_stats import sample as sp
 
 #%%        
 # data dictionary 기본 세팅
-b = pr.Modification() 
+d = bs.Database()
+b = pr.Preprocess() 
 s = sp.Sample()
+d.load_data_all("mysql+pymysql://root:","dudrn1","@127.0.0.1/baseball")
 #%%
+# data dictionary 기본 세팅
+
+b.game_info_array = d.game_info_array
+b.batter_array = d.batter_array
+b.pitcher_array = d.pitcher_array
+b.score_array = d.score_array
+
+b.set_dic_all()
 b.set_toto_dic()
 
 #%%
-
 def kde_graph():
 
     '''
@@ -39,27 +46,28 @@ def kde_graph():
     '''
 
     old_run = [-1]
-    
-    for i in range(1,11):
-        new_run = toto_dic[2017][i][:,6].reshape(-1,1)
-        if old_run[0] == -1:
-            old_run = new_run
-        else:
-            old_run = np.vstack([old_run,new_run])
+    for year in range(2017,2021):
+        for team_num in range(1,11):
+            new_run = b.toto_dic[year][team_num][:,6].reshape(-1,1)
+            if old_run[0] == -1:
+                old_run = new_run
+            else:
+                old_run = np.vstack([old_run,new_run])
     
     real_run = old_run.reshape(-1)
     
     # 그래프를 그리기 위한 MOM, MLE 모수 추정
-    s.set_basic(max_loop = 100000, size = 1440) # set basic parameter
+    s.set_basic(max_loop = 1000000, size = 10000) # set basic parameter
     
-    mod_run = s.mod_array_zero_to_num(real_run,1) # 0을 1로 변환 
+    mod_run = s.mod_array_zero_to_num(real_run,0.1) # 0을 0.1로 변환 
     s.set_data(mod_run)
-    s.start_theta = s.mom_gamma_theta # MLE추정을 위한 theta시작점을 MOM추정치로 설정
+    #s.start_theta = s.mom_gamma_theta # MLE추정을 위한 theta시작점을 MOM추정치로 설정
+    s.start_theta = [1,1] # MLE추정을 위한 theta 시작점을 임의의 점으로 설
     mle_theta = s.fit(dist = 'gamma')[-1,1:]
     mom_run = s.gamma_sample(theta = s.mom_gamma_theta)
     mle_run = s.gamma_sample(theta = mle_theta)
     norm_run = s.norm_sample(theta = [s.data_mean,s.data_var])
-    
+    print(mle_theta,s.mom_gamma_theta)
     # KDE 그리기
     plt.figure(figsize = (16,8))
     plt.ylim((0,0.2))
@@ -77,7 +85,7 @@ def kde_graph():
     plt.ylabel('Density',fontdict = {'fontsize':20})
     plt.title('KDE of GammaDistritution',fontdict = {'fontsize':30})
     plt.legend(handles = label_patches)
-    
+    plt.xlim((-10,30))
     
 kde_graph()
 #%%
@@ -335,7 +343,7 @@ z = pd.DataFrame(b.toto_dic[2017][1])
 #%%
 ga = b.game_info_array
 #%%
-
+b.score_array[0]
 #%%
 stadium_list = [0, '잠실','사직','광주','대구','잠실','대전','문학','고척','창원','수원']
 pf_list = [0]
@@ -343,10 +351,10 @@ for tn in range(1,11):
     
     stadium = stadium_list[tn]
     
-    team_gn_home = ga[(ga[:,2]<2021)&(ga[:,3]==tn)&(ga[:,6]=='home')&(ga[:,7]==stadium),1]
-    foe_gn_home = ga[(ga[:,2]<2021)&(ga[:,4]==tn)&(ga[:,6]=='away')&(ga[:,7]==stadium),1]
-    team_gn_away = ga[(ga[:,2]<2021)&(ga[:,3]==tn)&(ga[:,6]=='away'),1]
-    foe_gn_away = ga[(ga[:,2]<2021)&(ga[:,4]==tn)&(ga[:,6]=='home'),1]
+    team_gn_home = ga[(ga[:,3]<2021)&(ga[:,4]==tn)&(ga[:,7]=='home')&(ga[:,8]==stadium),2]
+    foe_gn_home = ga[(ga[:,3]<2021)&(ga[:,5]==tn)&(ga[:,7]=='away')&(ga[:,8]==stadium),2]
+    team_gn_away = ga[(ga[:,3]<2021)&(ga[:,4]==tn)&(ga[:,7]=='away'),2]
+    foe_gn_away = ga[(ga[:,3]<2021)&(ga[:,5]==tn)&(ga[:,7]=='home'),2]
     
     
     def get_score(team_game_idx):
@@ -354,12 +362,12 @@ for tn in range(1,11):
         pa_sum=0
         for tgi in team_game_idx:
             
-            sa = b.score_array[(b.score_array[:,0]==tgi),:][0]
+            sa = b.score_array[(b.score_array[:,1]==tgi),:][0]
             
             run = sa[-4]
             run_sum+=run
             
-            pa = sa[2:14]
+            pa = sa[9:21]
             pa = len(pa[(pa=='-')])
             pa_sum+=12 - pa
     
@@ -380,6 +388,7 @@ ipf = (sum(pf_list)/10)
 lpf_list = np.round(np.divide(pf_list,ipf),3)
 #%%
 lpf_list
+
 #%%
 def park_factor():
     '''
