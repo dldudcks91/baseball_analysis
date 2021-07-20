@@ -4,22 +4,23 @@ sys.path.append('D:\\BaseballProject\\python')
 
 
 #%%
+
+# 크롤링 관련 library
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-import requests
-import chromedriver_autoinstaller
 
+#%%
+# 계산 및 기타 library
 import datetime
 import pandas as pd
 import numpy as np 
-
 import pymysql
 
-from crawling import crawling_base as cb
+from bs_crawling import base as cb
 
 #%%
 

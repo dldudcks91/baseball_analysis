@@ -1,7 +1,9 @@
 #%%
 import sys
 sys.path.append('D:\\BaseballProject\\python')
+#%%
 
+# 크롤링 관련 library
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,14 +12,14 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import requests
 import chromedriver_autoinstaller
-
+#%%
+# 계산 및 기타 library
 import datetime
 import pandas as pd
 import numpy as np 
-
 import pymysql
 
-from baseball import base as bs
+from bs_stats import base as bs
 #%%
 
 class Crawling(bs.Database):

@@ -4,10 +4,10 @@ sys.path.append('D:\\BaseballProject\\python')
 
 #%%
 
-
-from crawling import crawling_base as cb
-from crawling import crawling_kbo as ck
-from crawling import crawling_wisetoto_all as cw
+import pymysql
+from bs_crawling import crawling_base as cb
+from bs_crawling import crawling_kbo as ck
+#from bs_crawling import crawling_wisetoto_all as cw
 #from baseball_2021.crawling import crawling_today_toto
 #%%
 
@@ -17,15 +17,35 @@ Crawling_KBO
 '''
 
 
-c = crawling_kbo.Crawling_baseball()
-#%%
+c = ck.Crawling_kbo()
 c.driver_start()
-c.date = 20210712
-c.driver.get('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate=' + str(c.date))
-#c.end_game_crawling()
-c.start_game_crawling()
-c.driver.close()
+#%%
+#conn  = pymysql.connect(host='localhost', user='root', password='dudrn1', db='baseball', charset='utf8')
 
+c.date = 20210613
+c.driver.get('https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate=' + str(c.date))
+
+#%%
+
+conn  = pymysql.connect(host='localhost', user='root', password='dudrn1', db='baseball', charset='utf8')
+    
+
+c.end_game_crawling(conn)
+
+#%%
+next_button = c.driver.find_element_by_xpath('//*[@id="contents"]/div[2]/ul/li[3]')
+next_button.click()    
+
+        
+    
+    
+    
+#c.start_game_crawling()
+
+#%%
+import time
+
+c.date_str == 
 #%%
 '''
 Crawling_toto

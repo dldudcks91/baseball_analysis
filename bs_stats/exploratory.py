@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
 
-from bs_stats import base as bs
+from bs_database import base as bs
 from bs_stats import preprocess as pr
 from bs_stats import sample as sp
 
@@ -23,7 +23,7 @@ from bs_stats import sample as sp
 d = bs.Database()
 b = pr.Preprocess() 
 s = sp.Sample()
-d.load_data_all("mysql+pymysql://root:","dudrn1","@127.0.0.1/baseball")
+
 #%%
 # data dictionary 기본 세팅
 

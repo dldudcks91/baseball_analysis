@@ -10,7 +10,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-import chromedriver_autoinstaller
 
 
 # 데이터 전처리 및 저장에 필요한 library 불러오기
@@ -18,7 +17,7 @@ import numpy as np
 import pymysql
 import datetime
 
-from crawling import crawling_base as cb
+from bs_crawling import base as cb
 #%%
 
 class Crawling_kbo(cb.Crawling):

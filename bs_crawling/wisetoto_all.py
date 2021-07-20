@@ -15,6 +15,8 @@ import numpy as np
 class Crawling_wisetoto():
     '''
     wisetoto 사이트에 있는 야구배당정보 가져오기
+    지금은 사용 x
+    
     '''
     def __init__(self):
         

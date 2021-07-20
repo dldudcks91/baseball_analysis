@@ -3,7 +3,7 @@ WelCome to Baseball of LYC
 크롤링 및 통계관련 코드 저장소
 
 
-/statistics -------------------
+/stats ------ 데이터 전처리 및 통계관련 코드
 
   base - 통계분석 부모 클래스(초기값 및 Database)
 
@@ -14,7 +14,7 @@ WelCome to Baseball of LYC
   exploratory - 탐색적 자료분석 클래스
 
 
-/crawling -------------------
+/crawling ------ 크롤링 코드
 
   crawling_base - 크롤링 부모 클래스
 
@@ -24,3 +24,5 @@ WelCome to Baseball of LYC
 
   crawling_wisetoto_all - 과거 배당 크롤링
 
+
+/database ------ DB 불러오기 및 업데이트

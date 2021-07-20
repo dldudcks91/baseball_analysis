@@ -6,7 +6,7 @@ sys.path.append('D:\\BaseballProject\\python')
 
 import numpy as np
 import pandas as pd
-from bs_stats import base as bs
+from bs_database import base as bs
 
 #%%
 class Preprocess(bs.Database):
