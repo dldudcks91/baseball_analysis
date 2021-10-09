@@ -19,7 +19,7 @@ import pandas as pd
 import numpy as np 
 import pymysql
 
-from bs_stats import base as bs
+from bs_database import base as bs
 #%%
 
 class Crawling(bs.Database):
@@ -31,8 +31,10 @@ class Crawling(bs.Database):
         self.today_date = None
         self.craw_time = None
         self.update_time_array = None
-    
-    def driver_start(self):
+        self.driver = None
+        
+        
+    def driver_start(self,is_headless = False):
         '''
         Start driver
         
@@ -45,12 +47,23 @@ class Crawling(bs.Database):
         
         '''
         
-        try:
-            driver = webdriver.Chrome('C:\\Users\\Chan\\.conda\\envs\\baseball\\lib\\site-packages\\chromedriver_autoinstaller\\90\\chromedriver')
+        version = chromedriver_autoinstaller.get_chrome_version()[:2]
+        if is_headless:
+            webdriver_options = webdriver.ChromeOptions()
+            webdriver_options.add_argument('headless')
             
-            self.driver = driver
-        except:
-            chromedriver_autoinstaller.install()
+            try:
+                self.driver = webdriver.Chrome('C:\\Users\\Chan\\.conda\\envs\\baseball\\lib\\site-packages\\chromedriver_autoinstaller\\' + version +'\\chromedriver',options = webdriver_options)
+                
+            except:
+                chromedriver_autoinstaller.install()
+        else:
+            try:
+                self.driver = webdriver.Chrome('C:\\Users\\Chan\\.conda\\envs\\baseball\\lib\\site-packages\\chromedriver_autoinstaller\\' + version +'\\chromedriver')
+                
+            except:
+                chromedriver_autoinstaller.install()
+                
         
     def set_craw_time(self, craw_type):
         today = datetime.datetime.today()

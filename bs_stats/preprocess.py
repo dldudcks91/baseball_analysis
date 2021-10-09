@@ -47,17 +47,26 @@ class Preprocess(bs.Database):
         self.sp_range = 7 # game_num_range_pitcher : 선발투수 경기 범위
         self.rp_range = 30 # 계투 경기 범위
         
-        self.start_fip = 5 # 투수 init fip
-        self.start_inn = 4 # 투수 init inn
+        self.start_fip = 6 # 투수 init fip
+        self.start_inn = 5 # 투수 init inn
         self.start_pa = 4.43
         
         self.least_inn = 10
         self.least_pa = 10
         
-        self.is_pa = True
-        self.is_park_factor = True
         self.is_new_game = False
+        self.is_pa = False
+        self.is_park_factor = True
+        self.is_iv = True
         
+        self.is_epa_xr = False
+        self.is_epa_sp = False
+        self.is_epa_rp = False
+        
+        
+        self.max_inn = 12
+        self.min_inn = 1
+        self.result_inn = 9
     def set_basic_params(self,**kwargs):
         
        
@@ -92,11 +101,13 @@ class Preprocess(bs.Database):
             년도와 팀에 따른 분석용 데이터를 빠르게 불러오기 위해 dictionary 생성 후 저
         
 
-        game_info_dic[year][team] (n x 7) : 기본정보 
+        game_info_dic[year][team] (n x 10) : 기본정보 
         ------------------------------------    
-            date:0, game_idx:1, year:2, team_num:3, foe_num:4, game_num:5, home&away:6, stadium: 7
+            date:0, game_idx:1, team_game_idx:2, year:3, team_num:4, 
+            
+            foe_num:5, game_num:6, home&away:7, stadium:8, result:9
 
-        
+
         batter_dic[year][team] (n x 30) : 타자정보
         ----------------------------------    
             date:0, game_idx:1, year:2, team_num:3, foe_num:4, game_num:5, home&away:6, stadium: 7 
@@ -138,7 +149,15 @@ class Preprocess(bs.Database):
         
     def set_game_info_dic(self):
         '''
-        게임기초정보 dictionary 만들기
+        Set basic game information dictionary
+        
+            게임기초정보 array를 보관하는 dictionary 만들기
+        
+        game_info_dic[year][team] (n x 10): 게임 기초정보 
+        -------------------------------------------------
+            date:0, game_idx:1, team_game_idx:2, year:3, team_num:4, 
+            
+            foe_num:5, game_num:6, home&away:7, stadium:8, result:9
         
         '''
         game_info_dic = dict()
@@ -154,6 +173,7 @@ class Preprocess(bs.Database):
         score_df =pd.DataFrame(self.score_array)
         score_df.columns = self.team_game_info_columns[1:] + self.score_columns
         
+        #승&패 columns 생성
         for year in self.year_list:
             year_array = self.game_info_array[(self.game_info_array[:,3])==year,:]
             game_info_list = [0]
@@ -189,19 +209,20 @@ class Preprocess(bs.Database):
             game_info_dic[year] = game_info_list
             max_game_dic[year] = max_game_list
             
-        self.game_info_dic = game_info_dic
-        self.max_game_dic = max_game_dic
+        self.game_info_dic = game_info_dic #게임 기본정보
+        self.max_game_dic = max_game_dic # 총 경기 수 
         
     def div_by_year_team(self, data_array):
         '''
-        주어진 array를 년도와 팀별 dictionary로 바꾸는 함수
+        주어진 array를 년도와 팀별 dictionary에 보관하는 함
+        
+        data_dic[year][team] (n x m)
         '''
         data_dic = dict()
         
         
         for year in self.year_list:
             data_list = [0]
-            
             
             for team_num in range(1,11):
                 new_data_array = data_array[(data_array[:,2] == year) & (data_array[:,3]==team_num)]
@@ -216,15 +237,15 @@ class Preprocess(bs.Database):
         '''
         Get Sum by name : XR
         
-            전년 기록을 통해 다음년도의 XR,fip 초기값을 구하는 함수
+            전년 기록을 통해 다음년도의 XR,fip 초기값 array를 구하는 함수
 
-        iv_batter_array (n x 20) : 년도별타자정보합산(index-4)
+        iv_batter_dic[year][team] (n x 20) : 년도별타자정보합산(index-4)
         ----------------------------------    
             name:4, h1:5, h2:6, h3:7, hr:8, bb:9, hbp:10, ibb:11, sac:12
             
             sf:13, so:14, go:15, fo:16, gidp:17, etc:18, h:19, tbb:20, ab:21, pa:22, xr:23
             
-        iv_pitcher_array[year][team] (n x 13) : 전년도타자정보합산(index-2)
+        iv_pitcher_dic[year][team] (n x 13) : 전년도타자정보합산(index-2)
         ----------------------------------
             name:2, po:3, ip:4, tbf:5, np:6, ab:7, h:8, hr:9, tbb:10, so:11, r:12, er:13, fip:14
         '''
@@ -338,7 +359,33 @@ class Preprocess(bs.Database):
     
     
     
+    def epa(self, data_array):
+        '''
+        Get data_array(n x 1) : mod_data
         
+            epanichnicov Kernel을 통해 가중된 값으로 바꿔주는 함수
+        
+        Parameter
+        ---------
+    
+            data_array : array consist of 1 columns
+            
+        
+        Variable
+        --------
+        
+            mod_data : epanichnicov Kernel에 의해 가중된 data값
+        
+        '''
+        len_col = len(data_array[0])
+        data_array = data_array.reshape(-1,len_col)
+        
+        len_data = len(data_array)
+        idx = np.arange(0,len_data).reshape(-1,1)
+        idx = np.divide(len_data - idx - 1,len_data)
+        
+        epa_data = data_array * 3/2 * (1 - np.power(idx,2)) - 0.75/len_data
+        return epa_data
     
     
     def xr_by_game(self, year, team_num, game_num):
@@ -346,7 +393,7 @@ class Preprocess(bs.Database):
         
         Get Sum of XR(float) : XR
             
-            game_num 경기 '라인업 선발타자'의 Sum of XR 구하는 함수(-batter_range)
+            game_num 경기 '라인업 선발타자'의 과거경기 Sum of XR 구하는 함수(-batter_range)
         
         Parameter
         ---------
@@ -422,12 +469,13 @@ class Preprocess(bs.Database):
             name = lineup_list[i]
             
             range_by_batter = range_array[name_array == name]
+            
             record_by_batter = range_by_batter[:,-2:]
             
-            
-            
-            range_xr = record_by_batter[:,1].reshape(-1,1)
-            range_sum_pa = np.sum(record_by_batter[:,0])
+            range_pa = record_by_batter[:,0]
+            range_xr = record_by_batter[:,1]
+            range_sum_pa = np.sum(range_pa)  
+            range_sum_xr = np.sum(range_xr)
             
             
             if range_sum_pa < least_pa: # 주어진 구간(batter_range)의 기록(pa)이 적을 경우 전체구간으로 설정
@@ -447,7 +495,15 @@ class Preprocess(bs.Database):
                     sum_record_array = np.sum(np.vstack([sum_record_array,new_iv_array]),0)
             else:
                 
-                
+                if self.is_epa_xr:
+                    epa_array = self.epa(record_by_batter) # epa_array(n x 2) : pa, xr
+                    range_xr = epa_array[:,1].reshape(-1,1)
+                    range_pa = epa_array[:,0].reshape(-1,1)
+                    range_sum_pa = np.sum(range_pa)
+                else:
+                    range_xr = record_by_batter[:,1].reshape(-1,1)
+                    range_pa = record_by_batter[:,0].reshape(-1,1)
+                      
                 
                 if self.is_park_factor: #park_factor 적
                     ground_array = range_by_batter[:,7]
@@ -468,23 +524,29 @@ class Preprocess(bs.Database):
                 
                 
                 
+                if range_sum_xr<=0: range_sum_xr = 0
                 sum_record_array = np.array([range_sum_pa,range_sum_xr]).reshape(-1,2).astype(np.float)
-                
+            if self.is_new_game:
+                try:
+                    print(team_num, i, name, round(range_sum_xr/range_sum_pa*4.41,3),round(range_sum_pa,3))
+                except:
+                    print('error', team_num, i, name, round(range_sum_xr,3), round(range_sum_pa,3))
             old_array = np.vstack([old_array,sum_record_array])
         
         team_record_array = old_array[1:]
+        
         xr_array = team_record_array[:,-1]
         pa_array = team_record_array[:,-2]
         
         result_array = np.divide(xr_array, pa_array,out = np.zeros_like(xr_array),where = pa_array!=0) # 타수당 XR로 환산
-        
+        result_array = np.where(result_array>=0.25,0.25,result_array)
         if self.is_pa:
-            result_xr = np.round(np.dot(result_array,self.pa_params),3)
+            result_array = np.round(np.dot(result_array,self.pa_params),3)
         else:
-            result_xr = np.round(np.sum(result_array,axis = 0) * start_pa,3)
+            result_array = np.round(np.sum(result_array,axis = 0) * start_pa,3)
         
             
-        return result_xr
+        return result_array
     
     
     def xr_by_team(self, year, team_num):
@@ -511,8 +573,56 @@ class Preprocess(bs.Database):
         return  np.array(xr_list).reshape(max_game_num,-1)
     
     
-    
-    
+    def run_xr_by_team(self,year,team_num):
+        
+        xr_list = list()
+        max_game_num = self.max_game_dic[year][team_num]
+        batter_array = self.batter_dic[year][team_num] # (n x 24)
+        
+        game_num_idx = 5 # 게임번호
+        
+        inn_array = self.score_dic[year][team_num][:,(-17+self.min_inn):(self.max_inn-16)]
+        inn_count_list = list()
+        
+        # 이닝당 점수를 체크하기 위해 '-'로 저장된 데이터 0으로 환산
+        for inn in inn_array:
+            inn_count = self.max_inn - self.min_inn + 1 - list(inn).count('-')
+            inn_count_list.append(inn_count)
+            
+        for game_num in range(1,max_game_num+1):
+            
+            game_mask = batter_array[:,game_num_idx] == game_num
+            xr_by_game = batter_array[game_mask,-1]
+            sum_xr = np.sum(xr_by_game)
+            xr_list.append(sum_xr)
+        
+        run_array = np.array(xr_list).reshape(-1,1)
+        
+        
+            
+            
+        #파크팩터 적용
+        if self.is_park_factor:
+            ground_array = self.score_dic[year][team_num][:,7]
+            pf_list = list()
+            for ground in ground_array:
+                try:
+                    pf_list.append(self.park_factor_total[ground])
+                except:
+                    pf_list.append(1)
+            pf_array = np.divide(1,np.array(pf_list).reshape(-1,1)).reshape(-1,1)
+            run_array = run_array *pf_array
+        else:
+            run_array = run_array
+        
+        
+        
+        inn_count_array = np.array(inn_count_list).reshape(-1,1)
+        result_run_array = np.divide(run_array,inn_count_array)
+        result_run_array = result_run_array * self.result_inn
+        
+        return result_run_array
+            
     def run_by_team(self,year,team_num):
         '''
         Get run_array(n x 1) : run
@@ -527,10 +637,21 @@ class Preprocess(bs.Database):
             team_num : number of team
             
         '''
-        run_array = self.score_dic[year][team_num][:,-4].reshape(-1,1)
-        inn_array = self.score_dic[year][team_num][:,-16:-4]
+        # 몇회~몇회까지 할건지 범위 설정
+        inn_array = self.score_dic[year][team_num][:,(-17+self.min_inn):(self.max_inn-16)]
+        inn_count_list = list()
+        run_list = list()
         
+        # 이닝당 점수를 체크하기 위해 '-'로 저장된 데이터 0으로 환산
+        for inn in inn_array:
+            inn_count = self.max_inn - self.min_inn + 1 - list(inn).count('-')
+            inn_count_list.append(inn_count)
+            run = sum(np.where(inn=='-',0,inn).astype(np.int))
+            run_list.append(run)
         
+        run_array = np.array(run_list).reshape(-1,1)
+        
+        #파크팩터 적용
         if self.is_park_factor:
             ground_array = self.score_dic[year][team_num][:,7]
             pf_list = list()
@@ -543,14 +664,13 @@ class Preprocess(bs.Database):
             run_array = run_array *pf_array
         else:
             run_array = run_array
-        
-        inn_count_list = list()
-        for inn in inn_array:
-            inn_count = 12 - list(inn).count('-')
-            inn_count_list.append(inn_count)
+
         inn_count_array = np.array(inn_count_list).reshape(-1,1)
-        result_run_array = np.divide(run_array,inn_count_array)*9
+        result_run_array = np.divide(run_array,inn_count_array)
+        result_run_array = result_run_array * self.result_inn
+        
         return result_run_array
+    
     
     
     def sp_by_game(self, year, team_num, game_num):
@@ -601,15 +721,19 @@ class Preprocess(bs.Database):
         least_inn = self.least_inn
         start_fip = self.start_fip
         start_inn = self.start_inn
-            
+        
+        
+        # 컬럼 인덱싱 번호
         game_idx = 1 # 고유게임번호
         game_num_idx = 5 # 게임번호
         name_idx = 8 # 이름
         po_idx = 9 # 선발/계투
         inn_idx = 10 # 이닝
         r_idx = 18 # 실점
-        er_idx = 19 # 자책점
+        era_idx = 19 # 자책점
         fip_idx = 20 # fip
+        
+        
         
         
         if self.is_new_game:
@@ -638,67 +762,92 @@ class Preprocess(bs.Database):
             start_idx = 0
          
         range_record_array = record_by_sp[start_idx:]
-            
-        sum_record_array = np.sum(range_record_array[:,(inn_idx,fip_idx)],axis = 0)
+        
         
         if len_sp > sp_range:
             len_range = sp_range
         else:
             len_range = len_sp
         
+        range_inn = range_record_array[:, inn_idx].reshape(-1,1)
+        range_era = range_record_array[:, era_idx].reshape(-1,1)
+        range_fip = range_record_array[:, fip_idx].reshape(-1,1)
         
-        
-        if self.is_park_factor:
-            ground_array = range_record_array[:,7]
-            pf_list = list()
-            for ground in ground_array:
-                try:
-                    pf_list.append(self.park_factor_total[ground])
-                except:
-                    pf_list.append(1)
-                    
-            pf_array = np.divide(1,np.array(pf_list).reshape(-1,1)).reshape(-1,1)
-            
-            range_sum_fip = np.dot(np.transpose(range_record_array[:,fip_idx]),pf_array)[0]
-        else:
-            range_sum_fip = sum_record_array[1]
-        
-        range_sum_inn = sum_record_array[0]
-        
-        sum_list = [range_sum_inn,range_sum_fip,len_range] # #inn, fip, len_sp
-        
-        
+        range_sum_inn = np.sum(range_inn)
+ 
+        sum_record_array = np.sum(range_record_array[:,(inn_idx,era_idx,fip_idx)],axis = 0)
         
         if range_sum_inn <= least_inn: # 주어진 구간의 기록(inn)이 적을 경우 전체구간으로 설정
             
-            sum_record_array = np.sum(record_by_sp[:,(inn_idx,fip_idx)], axis = 0)
-            sum_record_array = np.hstack([sum_record_array, len_sp])
+            sum_record_array = np.sum(record_by_sp[:,(inn_idx, era_idx, fip_idx)], axis = 0)
+            len_range = len_sp
+            sum_record_array = np.hstack([sum_record_array, len_range])
             inn_sum_total = sum_record_array[0]
+            if self.is_iv:
             
-            if inn_sum_total <= least_inn and iv_array[0,0] != 0: # 전체구간의 기록(inn)이 적을 경우 작년 기록 가져옴
-                
-                new_iv_array = iv_array[iv_array[:,0] == name][:,(2,-2,-1)] # inn, fip, len_sp                
-                sum_record_array = np.sum(np.vstack([sum_record_array,new_iv_array]),0)
-                
-                if len(new_iv_array) != 0:
-                    new_len_sp = sum_record_array[-1]
-                    len_sp+=new_len_sp
-                    sp_range +=new_len_sp
+                if inn_sum_total <= least_inn and iv_array[0,0] != 0: # 전체구간의 기록(inn)이 적을 경우 작년 기록 가져옴
                     
-        
-        
-        
-        
+                    new_iv_array = iv_array[iv_array[:,0] == name][:,(2,-3,-2,-1)] # inn, era, fip, len_sp                
+                    sum_record_array = np.sum(np.vstack([sum_record_array,new_iv_array]),0)
+                    
+                    if len(new_iv_array) != 0:
+                        new_len_sp = sum_record_array[-1]
+                        len_range+=new_len_sp
+            
+            
+            range_sum_inn = sum_record_array[0]
+            range_sum_era = sum_record_array[1]
+            range_sum_fip = sum_record_array[2]
+            
+        else:
+            
+            if self.is_epa_sp:
+                epa_array = self.epa(range_record_array[:,(inn_idx,era_idx,fip_idx)]) # epa_array(n x 2) : inn, era, fip
                 
-        inn_sum = sum_list[0]
-        fip_sum = sum_list[1]
+                range_inn = epa_array[:,0].reshape(-1,1)
+                range_era = epa_array[:,1].reshape(-1,1)
+                range_fip = epa_array[:,2].reshape(-1,1)
+                
+                
+        
+        
+            if self.is_park_factor:
+                ground_array = range_record_array[:,7]
+                pf_list = list()
+                for ground in ground_array:
+                    try:
+                        pf_list.append(self.park_factor_total[ground])
+                    except:
+                        pf_list.append(1)
+                        
+                pf_array = np.divide(1,np.array(pf_list).reshape(-1,1)).reshape(-1,1)
+                
+                range_sum_era = np.dot(np.transpose(range_era),pf_array)[0][0]
+                range_sum_fip = np.dot(np.transpose(range_fip),pf_array)[0][0]
+                
+            else:
+                range_sum_era = np.sum(range_era)
+                range_sum_fip = np.sum(range_fip)
+                
+            range_sum_inn = np.sum(range_inn)
+            
+        inn_sum = range_sum_inn
+        era_sum = range_sum_era
+        fip_sum = range_sum_fip
         
 
-        if len_sp == 0: #  선발투수 등판 기록이 없을경우 초기값 사용
+        if len_range == 0: # 선발투수 등판 기록이 없을경우 초기값 사용
+            era = start_fip
             fip = start_fip
             inn = start_inn
             
         elif inn_sum == 0: # 이닝이 0이닝일 경우 초기값 사용(에러방지)
+            era = start_fip
+            fip = start_fip
+            inn = start_inn
+            
+        elif inn_sum < self.least_inn:
+            era = start_fip
             fip = start_fip
             inn = start_inn
             
@@ -707,22 +856,25 @@ class Preprocess(bs.Database):
             
              # fip = (((13 * HR) + (3 * TBB) - (2 * SO)) / IP) + 3.2
             fip = (fip_sum / inn_sum) + 3.2
-
-            if len_sp <= sp_range:
-                inn = inn_sum / len_sp
-                
-            else:
-                inn = inn_sum / sp_range
+            era = era_sum / inn_sum * 9
+            inn = inn_sum / len_range
+            
                 
 
         #보정
         
-        if np.isnan(inn): inn = self.start_inn # 무한대 or None값이 있을경우 초기갑사용
-        if np.isnan(fip): inn = self.start_fip
+         # 무한대 or None값이 있을경우 초기갑사용
         
-        sp_record_array = np.hstack([name,inn,fip]) 
+        if np.isnan(inn): inn = self.start_inn
+        if np.isnan(era): era = self.start_fip
+        if np.isnan(fip): fip = self.start_fip
+
         
-        return sp_record_array # array : sp_name, inn, fip
+        
+        result_array = np.hstack([name, inn, era, fip, len_range]).reshape(1,-1)
+        
+        
+        return result_array # array(n x 5) : sp_name, inn, era, fip, len_range
     
     def sp_by_team(self, year, team_num):
         '''
@@ -738,14 +890,19 @@ class Preprocess(bs.Database):
             team_num : number of team
         
         '''
-        
+        name_idx = 0
+        inn_idx = 1
+        era_idx = 2
+        fip_idx = 3
+        len_idx = 4
         
         
         max_game_num =self.max_game_dic[year][team_num]
         
-        old_array = np.zeros((1,3))
+        old_array = np.zeros((1,5))
         for game_num in range(1, max_game_num+1):
             try:
+                
                 sp_array = self.sp_by_game(year, team_num, game_num)
                 old_array = np.vstack([old_array, sp_array])
             except:
@@ -792,6 +949,7 @@ class Preprocess(bs.Database):
         name_idx = 8 # 이름
         po_idx = 9 # 선발/계투
         inn_idx = 10 # 이닝
+        era_idx = 19 # era
         fip_idx = 20 # fip
         
         if self.is_new_game:
@@ -811,7 +969,8 @@ class Preprocess(bs.Database):
         po_array = range_array[:,po_idx]
         record_by_rp = range_array[po_array != 1,:]
         
-        old_array = np.zeros((1,2)) # rp 경기별 기록 합치기(파크팩터처리)
+        old_array = np.zeros((1,3)) # rp 경기별 기록 합치기(파크팩터처리)
+        
         for gn in range(start_game_num,game_num):
             
             range_record = record_by_rp[record_by_rp[:,5]==gn,:]
@@ -824,30 +983,43 @@ class Preprocess(bs.Database):
                     pf = 1
             else:
                 pf = 1
-            sum_record = np.sum(range_record[:,(inn_idx,fip_idx)],axis = 0)
-            new_array = np.array([sum_record[0],sum_record[1]/pf]).reshape(1,2)
+                
+            sum_record = np.sum(range_record[:,(inn_idx,era_idx, fip_idx)],axis = 0)
+            new_array = np.array([sum_record[0],sum_record[1]/pf, sum_record[2]/pf]).reshape(1,3)
             old_array = np.vstack([old_array,new_array])
         
+        range_record_array = old_array[1:]
+        range_inn = range_record_array[:,0].reshape(-1,1)
+        range_era = range_record_array[:,1].reshape(-1,1)
+        range_fip = range_record_array[:,2].reshape(-1,1)
+        inn_sum = np.sum(range_inn)
         
-        sum_record_array = np.sum(old_array,axis=0)
- 
-        inn_sum = sum_record_array[0]
-        fip_sum = sum_record_array[1]
+        
+        if self.is_epa_rp and inn_sum!=0:
+            epa_array = self.epa(range_record_array) # epa_array(n x 3): inn, era, fip
             
-                
-         
+            range_inn = epa_array[:,0].reshape(-1,1)
+            range_era = epa_array[:,1].reshape(-1,1)
+            range_fip = epa_array[:,2].reshape(-1,1)
+            inn_sum = np.sum(range_inn)
         
+        era_sum = np.sum(range_era)
+        fip_sum = np.sum(range_fip)    
+        
+        
+  
         if inn_sum == 0: # 이닝이 0이닝일 경우 초기값 사용(에러방지)
+            era = start_fip
             fip = start_fip
 
         else:
-             # fip = (((13 * HR) + (3 * TBB) - (2 * SO)) / IP) + 3.2
-            fip = (fip_sum / inn_sum) + 3.2
-     
-        fip_array = np.array([fip])
-        fip_array[np.isnan(fip_array)] = start_fip # 무한대 값이 있을경우 start_fip로 초기화
+            era = era_sum / inn_sum * 9
+            fip = (fip_sum / inn_sum) + 3.2 # fip = (((13 * HR) + (3 * TBB) - (2 * SO)) / IP) + 3.2
+            
+        result_array = np.array([era, fip])
+        result_array[np.isnan(result_array)] = start_fip # 무한대 값이 있을경우 start_fip로 초기화
         
-        return fip_array
+        return result_array #result_array(n x 2): era, fip
     
     def rp_by_team(self, year, team_num):
         '''
@@ -860,7 +1032,7 @@ class Preprocess(bs.Database):
         max_game_num = self.max_game_dic[year][team_num]
 
         
-        old_array = np.zeros((1,1))
+        old_array = np.zeros((1,2))
         for game_num in range(1, max_game_num+1):            
             try:
                 rp_array = self.rp_by_game(year, team_num, game_num)
@@ -872,8 +1044,17 @@ class Preprocess(bs.Database):
         
         return rp_array # array(n x 1) : fip
     
-    def set_xr_dic(self,dic_num):     
+    def set_range_dic(self,dic_num):     
+        '''
+        Set range_dic[range][year][team]
         
+            주어진 범위별 데이터 구해서 저장
+            
+        Parameter
+        ----------
+            dic_num: 1 = xr, 2 = sp, 3 = rp
+        
+        '''
         if dic_num == 1:
             data_dic = self.xr_dic
             data_range = self.br_range
@@ -901,7 +1082,7 @@ class Preprocess(bs.Database):
     
     def set_record_dic(self,br_range,sp_range,rp_range):
         '''
-        Set record_dic[year][team_num](n x 3) : 
+        Set record_dic[year][team_num] : 
         
             10개팀의 모든 기록을 dictionary로 가져오기
             
@@ -922,11 +1103,12 @@ class Preprocess(bs.Database):
                 #분석에 사용할 변수 데이터 불러오기
                 old_array = np.zeros((max_game,1))
                 
-                old_array = np.hstack([old_array,self.run_by_team(year,team_num)]) # run(n x 1) : run
-                old_array = np.hstack([old_array,self.xr_dic[br_range][year][team_num]]) # xr(n x 1) : xr
-                old_array = np.hstack([old_array,self.sp_dic[sp_range][year][team_num]])# sp(n x 3) : name, inn , sp_fip
-                old_array = np.hstack([old_array,self.rp_dic[rp_range][year][team_num]])# rp_fip 
-                total_record_array = old_array[:,1:] # total_record_array(n x 6): run, xr, name, inn, sp_fip, rp_fip       
+                old_array = np.hstack([old_array,self.run_by_team(year,team_num)]) # run(n x 1): run
+                old_array = np.hstack([old_array,self.run_xr_by_team(year,team_num)]) # run_xr(n x 1): run_xr
+                old_array = np.hstack([old_array,self.xr_dic[br_range][year][team_num]]) # xr(n x 1): xr
+                old_array = np.hstack([old_array,self.sp_dic[sp_range][year][team_num]])# sp(n x 5): name, inn , era, fip, sp_len
+                old_array = np.hstack([old_array,self.rp_dic[rp_range][year][team_num]])# rp(n x 2): era, fip
+                total_record_array = old_array[:,1:] # total_record_array(n x 9): run, xr, name, inn, sp_era, sp_fip, sp_len, rp_era, rp_fip       
                 team_list.append(total_record_array)
                 
             record_dic[year] = team_list
@@ -937,47 +1119,80 @@ class Preprocess(bs.Database):
     
     def set_record_total_dic(self,br_range,sp_range,rp_range):
         '''
-        Set record_dic[year][team_num]
-            
+        Set record_total_dic[year][team_num]
+                    
             10개 팀의 모든기록 + 해당경기 상대팀 기록 가져오기
+            
+        Return record_total_dic = info_array + record_total_array
+        
+        info_array(n x 10) : date,game_num,total_game_num,year,team_num,foe_num,game_num,home&away,stadium,result
+        record_total_array(n x 12): hRun, aRun, hName, aName, hXR, hInn, hSp, hRp, aXR, aInn, aSp, aRp
         '''
         self.set_record_dic(br_range,sp_range,rp_range)
-        info_dic = self.game_info_dic # info_array(n x 10) : (date,game_num,total_game_num,year,team_num,foe_num,game_num,home&away,stadium,result)  
-        record_dic = self.record_dic # record_array(n x 6): run, xr, name, inn, sp_fip, rp_fip
+        info_dic = self.game_info_dic # info_array(n x 10) : date(0), game_num(1), team_game_num(2), year(3), team_num(4), foe_num(5), game_num(6), home&away(7), stadium(8), result(9)
+        record_dic = self.record_dic # record_array(n x 9): run(0), xr(1), name(2), inn(3), sp_era(4), sp_fip(5), sp_len(6), rp_era(7), rp_fip(8)
         
-        len_info = 10
-        len_record = 12
+        len_info = 10 # 기본정보 columns 길이
+        len_record = 20 # 기록 columns 길이 9 x 2 = 18
         
-        date_idx = 0
+        game_num_idx = 1
         foe_num_idx = 5
         
         record_total_dic = dict()
         for year in self.year_list:
-            team_list = [0]
+            
+            team_list = [0]            
             for team_num in range(1,11):
-                
-                record_array = record_dic[year][team_num]
+                                
                 info_array = info_dic[year][team_num]
+                record_array = record_dic[year][team_num]
                 
                 old_array = np.zeros((1,len_record))
-                
                 for info,record in zip(info_array,record_array):
                     
-                    date = info[date_idx]
+                    game_num = info[game_num_idx]
                     foe_num = info[foe_num_idx]
                     
                     info_by_foe = info_dic[year][foe_num]
                     record_by_foe = record_dic[year][foe_num]
                     record_by_foe = np.hstack([info_by_foe,record_by_foe])                    
-                    record_by_foe = record_by_foe[record_by_foe[:,date_idx] == date][0,len_info:]
+                    record_by_foe = record_by_foe[record_by_foe[:,game_num_idx] == game_num][0,len_info:]
                     
                     
                     team_record_array = np.hstack([record,record_by_foe])
                     
-                    old_array = np.vstack([old_array,team_record_array])
-                old_array = old_array[1:,(0,6,2,8,1,3,4,5,7,9,10,11)] # record_array(n x 6): run, xr, name, inn, sp_fip, rp_fip
+                    old_array = np.vstack([old_array,team_record_array]) 
+                old_array = old_array[1:,:] 
+                '''
+                #우리팀 상대팀 전체 모형
                 
-                total_array = np.hstack([info_array,old_array])
+                name_array = old_array[:,(2,11)]
+                run_array = old_array[:,(0,9)]
+                
+                home_atk = old_array[:,1].reshape(-1,1)
+                home_dep = old_array[:,3:9]
+                away_atk = old_array[:,10].reshape(-1,1)
+                away_dep = old_array[:,12:]
+                
+                home_array = np.hstack([home_atk,away_dep]) #home_array(n x 7) = hXR, aInn, aSp_era, aSp_fip, aSp_len, aRp_era, aRp_fip
+                away_array = np.hstack([away_atk,home_dep]) #away_array(n x 7) = aXR, hInn, hSp_era, hSp_fip, hSp_len, hRp_era, hRp_fip
+                
+                record_array = np.hstack([name_array,run_array,home_array,away_array]) #record_array(n x 18): hName(0), aName(1), hRun(2), aRun(3), home_array(4:11), away_array(11:18)
+                '''
+                
+                #우리팀만 
+                
+                run_array = old_array[:,0].reshape(-1,1)
+                run_xr_array = old_array[:,1].reshape(-1,1)
+                home_atk = old_array[:,2].reshape(-1,1)
+
+                away_dep = old_array[:,14:]
+                
+                home_array = np.hstack([home_atk,away_dep]) #home_array(n x 7) = hXR, aInn, aSp_era, aSp_fip, aSp_len, aRp_era, aRp_fip
+                
+                
+                record_array = np.hstack([run_array,run_xr_array,home_array]) #record_array(n x 9): hRun(0), h_Run_XR(1), home_array(2:9)
+                total_array = np.hstack([info_array,record_array])  
                 
                 team_list.append(total_array)
             record_total_dic[year] = team_list
@@ -997,7 +1212,7 @@ class Preprocess(bs.Database):
         toto_array = self.toto_array[:,(1,2,6,7,8,9,10,12,18,19)]
         
         toto_dic = dict()
-        for year in range(2017,2021):
+        for year in range(2017,2022):
             team_list = [0]
             year_mask = (toto_array[:,0] == year)
             year_array = toto_array[year_mask,:]
@@ -1034,6 +1249,7 @@ class Preprocess(bs.Database):
                 
                 team_array[:,7] = home_rate_array
                 team_array[:,8] = away_rate_array
+                
                 team_array = np.hstack([idx_array,team_array])
                 team_list.append(team_array)
                    

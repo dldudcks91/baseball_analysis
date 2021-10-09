@@ -18,12 +18,19 @@ class Update(db.Database):
     def __init__(self):
         return
     
-    def get_run_graph_data(self, game_info_array, score_array, pitcher_array, last_game_num_list, park_factor_total, old_graph_array):
+    def get_recent_data(self, year, old_graph_array):
         '''
         최근 5, 20 경기 득점, 불펜실점 구하기
         run_graph_data table에 업로드 
         
         '''
+        game_info_array = self.game_info_array
+        score_array = self.score_array
+        pitcher_array = self.pitcher_array
+        park_factor_total = self.park_factor_total
+        
+        last_game_num_list = self.last_game_num_list
+        
         old_array = np.zeros((1,9))
         game_info_array = game_info_array[(game_info_array[:,2] == 2021),:]
 
@@ -38,13 +45,15 @@ class Update(db.Database):
             if park_factor == None: park_factor = 1
             
             # run-graph 데이터 생성
-            score_array = score_array[score_array[:,1]==team_game_idx,:][0]
-            game_inn = 12 - list(score_array[-16:-4]).count('-')
-            run = int(score_array[-4]) * 9 / game_inn
+            
+            range_score_array = score_array[score_array[:,1]==team_game_idx,:][0]
+            
+            game_inn = 12 - list(range_score_array[-16:-4]).count('-')
+            run = int(range_score_array[-4]) * 9 / game_inn
             run = run / park_factor
             
-            pitcher_array = pitcher_array[pitcher_array[:,1]==team_game_idx,:]
-            rp_array = pitcher_array[1:]
+            range_pitcher_array = pitcher_array[pitcher_array[:,1]==team_game_idx,:]
+            rp_array = range_pitcher_array[1:]
             rp_fip = np.sum(rp_array[:,-1])
             rp_fip = rp_fip / park_factor
             rp_inn = np.sum(rp_array[:,-11])
@@ -82,7 +91,7 @@ class Update(db.Database):
         
         for team_num in range(1,11):
             last_game_num = last_game_num_list[team_num]
-            graph_last_game_num = int(old_graph_array[(old_graph_array[:,1]==2021)&(old_graph_array[:,2]==team_num),:][-1,3])
+            graph_last_game_num = int(old_graph_array[(old_graph_array[:,1]=='2021')&(old_graph_array[:,2]==str(team_num)),:][-1,3])
     
             for game_num in range(graph_last_game_num+1,last_game_num+1):
                 new_array = old_array[(old_array[:,2] == str(team_num).zfill(2))&(old_array[:,1]=='2021')&(old_array[:,3]==str(game_num).zfill(3)),:]
@@ -91,14 +100,14 @@ class Update(db.Database):
         graph_array = graph_array[1:]
         return graph_array
 
-    def get_win_rate_team_info(self, game_info_array, score_array):
+    def get_new_win_rate(self, game_info_array, score_array):
         '''
             팀 별 승률 계산
             team_info 테이블에 업로드
         
         '''
         
-        score_array
+        
         old_array = np.zeros((1,6))
         for year in range(2021,2022):
             for team_num in range(1,11):
@@ -122,6 +131,7 @@ class Update(db.Database):
                 draw = 0 
                 lose = 0
                 length = len(tsl)
+                print(length)
                 for i in range(length):
                     ts = tsl.pop()
                     fs = fsl.pop()
@@ -131,8 +141,9 @@ class Update(db.Database):
                         draw+=1
                     else:
                         lose+=1
-                win_rate = round(win / (win+lose+draw),3)
+                win_rate = round(win / (win+lose),3)
                 new_list = [win,lose,draw,win_rate, year,team_num]
+                
                 old_array = np.vstack([old_array,new_list])
         
         record_array = old_array[1:].astype(str)

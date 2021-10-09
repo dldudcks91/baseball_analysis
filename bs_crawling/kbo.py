@@ -161,6 +161,7 @@ class Crawling_kbo(cb.Crawling):
         
         view_str = str(view)
         date_str = self.date_str
+        
         try:
             home_name = view_str[view_str.index('home_nm'):view_str.index('home_p_id')].strip()[-4:-1].replace('"','')
             away_name = view_str[view_str.index('away_nm'):view_str.index('away_p_id')].strip()[-4:-1].replace('"','')
@@ -175,6 +176,7 @@ class Crawling_kbo(cb.Crawling):
         
         home_num_str = '%02d' % self.team_dic[home_name]
         away_num_str = '%02d' % self.team_dic[away_name]
+        
         
         today_game_num = '0' + view_str[view_str.index('game_sc')-3]
         game_idx = date_str + home_num_str + away_num_str + today_game_num
@@ -697,10 +699,13 @@ class Crawling_kbo(cb.Crawling):
                 view = self.view_list[j]
                 
                 # game_info 크롤링 및 저장
-                self.craw_game_info(view)
-                self.craw_team_game_info()
+                self.end = view.find('span',{'class':'time'}).string
+                
                 
                 if self.end == '경기종료':
+                    self.craw_game_info(view)
+                    self.craw_team_game_info()
+                    
                     self.array_to_db(conn, self.game_info_array, 'game_info')   
                     self.array_to_db(conn, self.team_game_info_array,'team_game_info')
                     
@@ -727,21 +732,23 @@ class Crawling_kbo(cb.Crawling):
                         # 게임번호 +1
                         team_num = self.home_away_num_dic[home_away]
                         self.last_game_num_list[team_num]+=1
-
+    
                 
                 else: pass
-                 
-            self.update_total_game_num(conn, year, self.last_game_num_list)
+            
+            self.update_team_info(conn,year,self.last_game_num_list, update_type = 'game_num')
+            
             conn.commit()
             conn.close()
-            
+        
+        
         except:
             conn.rollback()
             conn.close()
             print('error')
+        
 
-
-    def start_game_crawling(self, conn):
+    def start_game_crawling(self, conn, start_idx = 0 ):
         
         self.set_craw_time(1)
         year = self.date//10000
@@ -785,45 +792,52 @@ class Crawling_kbo(cb.Crawling):
             conn.close()
             print('error')
         '''
-        for j, element in enumerate(self.elements):
-                
-            # last_game_num list 생성
-            
-            view = self.view_list[j]
-            
-            # game_info 크롤링 및 저장
-            self.craw_game_info(view)
-            self.craw_team_game_info()
-            
-            
-            
-            if self.end == '경기종료': continue
-                
-            elif '취소' in self.end: 
-                self.array_to_db(conn, self.game_info_array, 'today_game_info')
-                self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
-                for home_away in ['Home', 'Away']:
-                    team_num = self.home_away_num_dic[home_away]
-                    self.last_game_num_list[team_num]+=1
-                
-                
-            else:
-                self.array_to_db(conn, self.game_info_array, 'today_game_info')
-                self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
-                
-                
-                self.ready_by_match(j,element,False)    
-                
-                for home_away in ['Home', 'Away']:
-                        
-                    self.craw_lineup(view,home_away)
-                    self.array_to_db(conn, self.lineup_array, 'today_lineup')
-
-                    team_num = self.home_away_num_dic[home_away]
-                    self.last_game_num_list[team_num]+=1
-                
+        try:
+            for j, element in enumerate(self.elements):
+                if j < start_idx: continue
                     
-        conn.commit()
-        conn.close()
+                # last_game_num list 생성
+                
+                view = self.view_list[j]
+                
+                # game_info 크롤링 및 저장
+                self.craw_game_info(view)
+                self.craw_team_game_info()
+                
+                
+                
+                if self.end == '경기종료': continue
+                    
+                elif '취소' in self.end: 
+                    self.array_to_db(conn, self.game_info_array, 'today_game_info')
+                    self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
+                    for home_away in ['Home', 'Away']:
+                        team_num = self.home_away_num_dic[home_away]
+                        self.last_game_num_list[team_num]+=1
+                    
+                    
+                else:
+                    
+                    self.array_to_db(conn, self.game_info_array, 'today_game_info')
+                    self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
+                    
+                    
+                    self.ready_by_match(j,element,False)    
+                    
+                    for home_away in ['Home', 'Away']:
+                            
+                        self.craw_lineup(view,home_away)
+                        self.array_to_db(conn, self.lineup_array, 'today_lineup')
+    
+                        team_num = self.home_away_num_dic[home_away]
+                        self.last_game_num_list[team_num]+=1
+                    
+                        
+            conn.commit()
+            conn.close()
+        except:
+            conn.rollback()
+            conn.close()
+            print('---start kbo error---')
 #%%
 

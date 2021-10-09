@@ -3,8 +3,6 @@ import sys
 sys.path.append('D:\\BaseballProject\\python')
 
 
-#%%
-
 # 크롤링 관련 library
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
@@ -13,15 +11,11 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-#%%
 # 계산 및 기타 library
-import datetime
 import pandas as pd
 import numpy as np 
-import pymysql
 
 from bs_crawling import base as cb
-
 #%%
 
 class Crawling_today_toto(cb.Crawling):
@@ -50,14 +44,23 @@ class Crawling_today_toto(cb.Crawling):
         conn.close()
         self.today_game_info_array = today_game_info_array
 
-    def craw_toto_first(self, url):
+    def craw_odds_first(self, url):
         self.driver.get(url)
-        prev_button = self.driver.find_element_by_xpath('//*[@id="score_top"]/ul[2]/li[5]/a[1]')
-        next_button = self.driver.find_element_by_xpath('//*[@id="score_top"]/ul[2]/li[5]/a[3]')
         
+        self.driver.find_element_by_xpath('//*[@id="score_menu"]/ul/li[2]').click()
+
+        #prev_button = self.driver.find_element_by_xpath('//*[@id="score_top"]/ul[2]/li[5]/a[1]')
+        #next_button = self.driver.find_element_by_xpath('//*[@id="score_top"]/ul[2]/li[5]/a[3]')
         
+        #self.driver.switch_to_frame(self.driver.find_elements_by_css_selector('#frame > iframe'))
+        self.driver.switch_to_frame(self.driver.find_elements_by_tag_name('iframe',)[5])
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source,'html.parser')
+        #WebDriverWait(self.driver,5).until(expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="score_top"]/ul[2]/li[2]/a')))
+        
+        #kbo_button = self.driver.find_element_by_xpath('//*[@id="score_top"]/ul[2]/li[2]/a')
+        
+        #kbo_button.click()
         elements = soup.find_all("b",text="KBO")
         
         old_array = np.zeros((1,10))
@@ -90,8 +93,7 @@ class Crawling_today_toto(cb.Crawling):
                 away_rate = round(1 - (odds1 / (odds1+odds2)),3)
                 home_rate = round(1 - (odds2 / (odds1+odds2)),3)
             except:
-                away_rate = 0
-                home_rate = 0
+                continue
             
             new_list.append(away_rate)
             new_list.append(home_rate)
@@ -103,9 +105,9 @@ class Crawling_today_toto(cb.Crawling):
         
         self.toto_first_array = result_array
             
-    def craw_toto_second(self, url, login_id, login_code):
+    def craw_odds_second(self, url, login_id, login_code):
         self.driver.get(url)
-
+        WebDriverWait(self.driver,5).until(expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="memid"]')))
         self.driver.find_element_by_xpath('//*[@id="memid"]').send_keys(login_id)
         self.driver.find_element_by_xpath('//*[@id="mempwd"]').send_keys(login_code)
         self.driver.find_element_by_xpath('//*[@id="btnLogin"]').click()
@@ -169,14 +171,15 @@ class Crawling_today_toto(cb.Crawling):
         
     def craw_toto_all(self, url_first, url_second, login_id, login_code):
         self.set_craw_time(2)
-        self.driver_start()
-        self.craw_toto_first(url_first)
-        self.craw_toto_second(url_second, login_id, login_code)
+        self.driver_start(is_headless = True)
+        self.craw_odds_first(url_first)
+        self.craw_odds_second(url_second, login_id, login_code)
         toto_array = np.zeros((1,10))
         toto_array = np.vstack([toto_array,self.toto_first_array])
         toto_array = np.vstack([toto_array,self.toto_second_array])
         self.toto_array = toto_array[1:]
+        print(self.toto_array)
+        print('--- end craw_odds ---')
         self.driver.close()
-#%%
 
 

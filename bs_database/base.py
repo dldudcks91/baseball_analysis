@@ -5,6 +5,7 @@ sys.path.append('D:\\BaseballProject\\python')
 #%%
 import numpy as np
 import pandas as pd
+import pymysql
 from sqlalchemy import create_engine
 
 import bs_stats.base as bs
@@ -47,17 +48,42 @@ class Database(bs.Baseball):
         result = cursor.fetchall()
         return result
     
-    def array_to_db(self,conn, data_array,table_name):
+    def load_table(self, conn, table):
+        
+        cursor = conn.cursor()
+        sql = 'select * from ' + table
+        cursor.execute(sql)
+        result_array = np.array(cursor.fetchall())
+        
+        return result_array
+    
+    def insert_table(self, conn, table, data_array):
         '''
         파이썬 array를 DB에 저장하는 코드
+        array_to_db와 같은 코드 
         
         '''
         cursor = conn.cursor()
         
-        for data in data_array:
+        for i,data in enumerate(data_array):
             data_str = str(tuple(data))
             data_str = data_str.replace('None','Null')
-            sql = 'insert into' +' '+ table_name + ' ' + 'values' + data_str
+            sql = 'insert into '+ table + ' values ' + data_str
+            cursor.execute(sql)
+        
+
+    
+    def array_to_db(self,conn, data_array, table):
+        '''
+        파이썬 array를 DB에 저장하는 코드
+        insert_table과 같은 코드 
+        '''
+        cursor = conn.cursor()
+        
+        for i, data in enumerate(data_array):
+            data_str = str(tuple(data))
+            data_str = data_str.replace('None','Null')
+            sql = 'insert into' +' '+ table + ' ' + 'values' + data_str
             cursor.execute(sql)
             
     def set_last_game_num_list(self,year,conn):
@@ -72,25 +98,29 @@ class Database(bs.Baseball):
             new_list.append(last_game_num[0])
         self.last_game_num_list = [0] + new_list
         
-    def update_total_game_num(self, conn, year, update_game_num_list):
-        '''
         
-            team_info 테이블의 게임번호 업데이트
+    def update_team_info(self,conn, year, record_list, update_type):
+        cursor = conn.cursor()
+        
+        if update_type == 'game_num':
             
-        '''
-        cursor = conn.cursor()
+            for team_num in range(1,11):
+                update_game_num = record_list[team_num]
+                sql = "update team_info set total_game_num =" + str(update_game_num) + " where year = " + str(year) + " and team_num = "+ str(team_num)
+                cursor.execute(sql)
+                
+        elif update_type == 'record':
+            cursor = conn.cursor()
+            sql = ''' UPDATE team_info SET win= %s, lose= %s, draw= %s, win_rate=%s WHERE year= %s AND team_num= %s; ''' 
+            cursor.executemany(sql,record_list)
         
-        for team_num in range(1,11):
-            update_game_num = update_game_num_list[team_num]
-            sql = "update team_info set total_game_num =" + str(update_game_num) + " where year = " + str(year) + " and team_num = "+ str(team_num)
-            cursor.execute(sql)
+        elif update_type == 'local_to_aws':
+            cursor = conn.cursor()
+            sql = ''' UPDATE team_info SET total_game_num = %s, win= %s, lose= %s, draw= %s, win_rate=%s WHERE year= %s AND team_num= %s; ''' 
+            cursor.executemany(sql,record_list)
+            
     
-    def update_execute_many(self,conn, record_list):
-        cursor = conn.cursor()
-        sql = ''' UPDATE team_info SET win= %s, lose= %s, draw= %s, win_rate=%s WHERE year= %s AND team_num= %s; ''' 
-        cursor.executemany(sql,record_list)
-    
-    
+  
     def array_to_db_df(self,data_array,table_name, col_name):
         '''
         
@@ -140,7 +170,7 @@ class Database(bs.Baseball):
         
         '''
         
-            오늘 있는 경기 정보관 테이블 가져오기
+            오늘 있는 경기 정보관련 테이블 가져오기
             
         '''
         
@@ -162,3 +192,8 @@ class Database(bs.Baseball):
         self.today_array= today_array
         
         conn.close()
+        
+    def delete_table_data(self,conn,table_name):
+        cursor = conn.cursor()
+        sql = 'delete from' + ' ' + table_name
+        cursor.execute(sql)

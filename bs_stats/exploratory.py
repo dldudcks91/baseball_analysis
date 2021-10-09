@@ -21,6 +21,7 @@ from bs_stats import sample as sp
 #%%        
 # data dictionary 기본 세팅
 d = bs.Database()
+#%%
 b = pr.Preprocess() 
 s = sp.Sample()
 
@@ -83,11 +84,35 @@ def kde_graph():
         
     plt.xlabel('Run',fontdict = {'fontsize':20})
     plt.ylabel('Density',fontdict = {'fontsize':20})
-    plt.title('KDE of GammaDistritution',fontdict = {'fontsize':30})
+    plt.title('KDE of GammaDistribution',fontdict = {'fontsize':30})
     plt.legend(handles = label_patches)
     plt.xlim((-10,30))
     
 kde_graph()
+#%%
+
+s.size = 100000
+plt.figure(figsize = (16,8))
+plt.ylim((0,0.2))
+label_patches = []
+home_run = s.gamma_sample(theta = [2,3])
+away_run = s.gamma_sample(theta = [3,2])
+run_list = [home_run,away_run]
+name_list = ['Home', 'Away']
+color_list = ['Blue','Green']
+for data, name, color in zip(run_list,name_list,color_list):
+    
+    sns.kdeplot(data,shade = True,label = name,color = color )
+    label_patch = mpatches.Patch(label = name,color = color)
+    label_patches.append(label_patch)
+    
+plt.xlabel('Run',fontdict = {'fontsize':20})
+plt.ylabel('Density',fontdict = {'fontsize':20})
+plt.title('KDE of GammaDistribution',fontdict = {'fontsize':30})
+plt.legend(handles = label_patches)
+plt.xlim((-10,30))
+
+
 #%%
 
 def compare_win_rate():
@@ -379,11 +404,14 @@ for tn in range(1,11):
     tga = get_score(team_gn_away)
     fga = get_score(foe_gn_away)
     
-    hr = (tgh[0] + fgh[0])/(tgh[1]+fgh[1]) 
+    hr = (tgh[0] + fgh[0])/(tgh[1]+fgh[1])
     ar =(tga[0] + fga[0])/(tga[1]+fga[1])
     pf = hr / ((1/10)*hr + (9/10)*ar)
+    pf = 1-(1 - pf)/2
     pf_list.append(pf)
 #%%
+    
+    #%%
 ipf = (sum(pf_list)/10)
 lpf_list = np.round(np.divide(pf_list,ipf),3)
 #%%

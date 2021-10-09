@@ -1,4 +1,8 @@
 #%%
+import sys
+sys.path.append('D:\BaseballProject\\python')
+
+#%%
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,10 +13,10 @@ import requests
 import pandas as pd
 import numpy as np 
 
-
+from bs_crawling import base as cb
 #%%
 
-class Crawling_wisetoto():
+class Crawling_wisetoto(cb.Crawling):
     '''
     wisetoto 사이트에 있는 야구배당정보 가져오기
     지금은 사용 x
@@ -27,16 +31,9 @@ class Crawling_wisetoto():
         self.round_data = None
         
         
-        
-    def driver_start(self):
-        
-        driver = webdriver.Chrome('C:\\Users\\Chan\\.conda\\envs\\baseball\\lib\\site-packages\\chromedriver_autoinstaller\\90\\chromedriver')
-        driver.get('http://www.wisetoto.com/index.htm')
-        
-        WebDriverWait(driver,10).until(expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="tab02_01"]')))
-        self.driver = driver
+    def set_main(self):
+        WebDriverWait(self.driver,10).until(expected_conditions.presence_of_element_located((By.XPATH,'//*[@id="tab02_01"]')))
     
-        
         # Select year
     def set_year(self,year):
         select_year = Select(self.driver.find_element_by_xpath('//*[@id="tab02_01"]/div[1]/div[1]/select[1]'))
