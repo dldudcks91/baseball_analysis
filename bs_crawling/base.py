@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup
 import requests
 import chromedriver_autoinstaller
 #%%
+
+#%%
 # 계산 및 기타 library
 import datetime
 import pandas as pd
@@ -47,7 +49,7 @@ class Crawling(bs.Database):
         
         '''
         
-        version = chromedriver_autoinstaller.get_chrome_version()[:2]
+        version = chromedriver_autoinstaller.get_chrome_version()[:3]
         if is_headless:
             webdriver_options = webdriver.ChromeOptions()
             webdriver_options.add_argument('headless')
@@ -57,12 +59,14 @@ class Crawling(bs.Database):
                 
             except:
                 chromedriver_autoinstaller.install()
+                
         else:
             try:
                 self.driver = webdriver.Chrome('C:\\Users\\Chan\\.conda\\envs\\baseball\\lib\\site-packages\\chromedriver_autoinstaller\\' + version +'\\chromedriver')
                 
             except:
                 chromedriver_autoinstaller.install()
+                
                 
         
     def set_craw_time(self, craw_type):

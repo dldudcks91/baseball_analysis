@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 import numpy as np 
 import pymysql
 import datetime
-
+import time
 from bs_crawling import base as cb
 #%%
 
@@ -39,6 +39,7 @@ class Crawling_kbo(cb.Crawling):
         self.batter_raw_array = np.zeros((1,14))
         self.pitcher_raw_array = np.zeros((1,19))
         
+        self.last_game_num_list = [0 for i in range(11)]
         self.lineup_array = np.zeros((1,4))
         # 기타 쓰이는 변수
         self.date = None
@@ -46,9 +47,9 @@ class Crawling_kbo(cb.Crawling):
         self.end = None # 경기종료결과(경기종료, 우천취소 등)
         
         self.team_game_idx_dic = dict() # team_game_idx 생성 후 Home, Away구분해 저장하는 dictionary(데이터 분석용)
+        
 
-
-    def ready_by_round(self):
+    def ready_by_round(self, is_end):
         '''
         Set basic setting by round
         
@@ -71,13 +72,13 @@ class Crawling_kbo(cb.Crawling):
         
         # 페이지소스 가져오기
         page_source = self.driver.page_source
-        soup = BeautifulSoup(page_source,'html.parser')
+        self.soup = BeautifulSoup(page_source,'html.parser')
         
         # 경기들에 대한 정보를 가지고있는 elements 가져오기 - 나중에 element로 가져와 매치 별로 사용
         self.elements = self.driver.find_elements_by_class_name('game-cont')
         
         # 날짜 생성        
-        date = soup.find('span',{'id':'lblGameDate'})
+        date = self.soup.find('span',{'id':'lblGameDate'})
         date = date.string
         year = date[:4]
         month = date[5:7]
@@ -86,10 +87,22 @@ class Crawling_kbo(cb.Crawling):
         self.year_str = year
         
         # 게임정보 list 생성
-        view_port = soup.find('div', {'class' : 'bx-viewport'})
-        view_list = view_port.find_all('li')
+        view_port = self.soup.find('div', {'class' : 'bx-viewport'})
+        view_list_all = view_port.find_all('li')
+        
+        view_list = list()
+        if is_end == True:
+            for i, view in enumerate(view_list_all):
+                if i % 3 == 0:
+                    view_list.append(view)
+        else:
+            for i, view in enumerate(view_list_all):
+                if i % 4 == 0:
+                    view_list.append(view)
         self.view_list = view_list
         
+        
+
         
     def ready_by_match(self,match_num,element,is_end):
         '''
@@ -118,7 +131,7 @@ class Crawling_kbo(cb.Crawling):
             review = self.driver.find_element_by_xpath('//*[@id="tabDepth2"]/li[2]')
         
         
-        
+            time.sleep(1)
             review.click()
             try:
                 WebDriverWait(self.driver,5).until(expected_conditions.presence_of_element_located((By.CLASS_NAME,'box-score-area')))
@@ -166,7 +179,7 @@ class Crawling_kbo(cb.Crawling):
             home_name = view_str[view_str.index('home_nm'):view_str.index('home_p_id')].strip()[-4:-1].replace('"','')
             away_name = view_str[view_str.index('away_nm'):view_str.index('away_p_id')].strip()[-4:-1].replace('"','')
         
-            
+        
         except:
             home_name = view_str[view_str.index('home_nm'):view_str.index('kbot_se')].strip()[-4:-1].replace('"','')
             away_name = view_str[view_str.index('away_nm'):view_str.index('entry_ck')].strip()[-4:-1].replace('"','')
@@ -182,14 +195,14 @@ class Crawling_kbo(cb.Crawling):
         game_idx = date_str + home_num_str + away_num_str + today_game_num
         self.game_idx = game_idx
         
+        try:
+            stadium = view.find('div',{'class':'top'}).find('li').string
+        except:
+            print('error' + 'craw_game_info: stadium')
         
-        stadium = view.find('span',{'class' : 'place'}).string
-        end = view.find('span',{'class':'time'}).string
-        
-        self.end = end
-        
+        end = view.find('p',{'class':'staus'}).string
         etc = None
-        
+        self.end = end
 
             
             
@@ -434,6 +447,7 @@ class Crawling_kbo(cb.Crawling):
             for records in batter_records:
                 records = str(records)
                 records = records.split('<br/>/ ')
+                
                 for record in records:
                     
                     record_num = record_dic.get(record)
@@ -459,7 +473,9 @@ class Crawling_kbo(cb.Crawling):
                         elif record[-1] in ['파','비','직','실']: record_dic[record] = 11 # 플라이아웃: 11
                         elif record[-1] == '병' or record[-2:] == '삼중': record_dic[record] = 12 # 병살타: 12
                         elif record not in ['nan', '', ' ']: record_dic[record] = 13 # ETC: 13   
-                        
+                            
+                            
+                            
                         if record not in ['nan','',' ']:
                             new_record_array[record_dic[record]] +=1
             
@@ -647,7 +663,7 @@ class Crawling_kbo(cb.Crawling):
         team_game_idx = self.team_game_idx_dic[home_away]
         
         home_away_lower = home_away.lower()
-        pitcher_find = view.find('div', {'class':'team ' + home_away_lower}).get_text().strip()
+        pitcher_find = view.find('div', {'class':'team ' + home_away_lower}).get_text().strip()[1:]
         
         batter_find = self.soup.find('table',{'id':'tbl' + home_away + 'LineUp'}).find_all('td')[::-1]
         
@@ -661,6 +677,7 @@ class Crawling_kbo(cb.Crawling):
             else:
                 for j in range(4):
                     batter = batter_find.pop()
+                    
                     if j !=3:
                         lineup_list.extend(batter)
                         
@@ -683,7 +700,7 @@ class Crawling_kbo(cb.Crawling):
         conn.begin()
     
     
-        self.ready_by_round()
+        self.ready_by_round(True)
         self.set_last_game_num_list(year,conn)
     
         #self.delete_table_data(conn,'today_team_game_info')
@@ -699,34 +716,54 @@ class Crawling_kbo(cb.Crawling):
                 view = self.view_list[j]
                 
                 # game_info 크롤링 및 저장
-                self.end = view.find('span',{'class':'time'}).string
-                
+                self.end = view.find('p',{'class':'staus'}).string
+                print(j, self.end)
                 
                 if self.end == '경기종료':
-                    self.craw_game_info(view)
-                    self.craw_team_game_info()
+                    try:
+                        self.craw_game_info(view)
+                        self.craw_team_game_info()
+                    except:
+                        print('error1')
                     
-                    self.array_to_db(conn, self.game_info_array, 'game_info')   
-                    self.array_to_db(conn, self.team_game_info_array,'team_game_info')
                     
-                    self.ready_by_match(j,element,True) # 매치별 기본정보 구하기
-                    
+                    try:
+                        
+                        print(self.game_info_array)
+                        print(self.team_game_info_array)
+                        self.array_to_db(conn, self.game_info_array, 'game_info')   
+                        print('success commit game_info_array')
+                        self.array_to_db(conn, self.team_game_info_array,'team_game_info')
+                        print('success commit team_game_info_array')
+                        self.ready_by_match(j,element,True) # 매치별 기본정보 구하기
+                        print('success ready_by_match')
+                    except:
+                        print('error2')
                     # score_record 크롤링 및 저장
                     
+                    
+                        
                     self.craw_score_array()
+                    print(self.score_array)
+                    print('success craw_score_array')
                     self.array_to_db(conn, self.score_array,'score_record')
+                    print('success commit_score_array')
+                    WebDriverWait(self.driver,5)
                     for home_away in ['Home', 'Away']:
                         
                         team_game_idx = self.team_game_idx_dic[home_away]
-                        
+                        print(team_game_idx)
                         # batter_record 크롤링 및 저장
                         self.craw_batter_array(home_away)
                         self.set_batter_array(team_game_idx)
-                        self.array_to_db(conn,self.batter_array,'batter_record')
+                        
                         
                         # pitcher_record 크롤링 및 저장
                         self.craw_pitcher_array(home_away)
                         self.set_pitcher_array(team_game_idx) 
+                        
+                        
+                        self.array_to_db(conn,self.batter_array,'batter_record')
                         self.array_to_db(conn, self.pitcher_array,'pitcher_record')
                         
                         # 게임번호 +1
@@ -735,8 +772,11 @@ class Crawling_kbo(cb.Crawling):
     
                 
                 else: pass
-            
-            self.update_team_info(conn,year,self.last_game_num_list, update_type = 'game_num')
+            try:
+                self.update_team_info(conn,year,self.last_game_num_list, update_type = 'game_num')
+            except:
+                print(self.last_game_num_list)
+                print('error_update')
             
             conn.commit()
             conn.close()
@@ -756,7 +796,8 @@ class Crawling_kbo(cb.Crawling):
         conn.begin()
         
         
-        self.ready_by_round()
+        self.ready_by_round(False)
+        
         self.set_last_game_num_list(year,conn)
         
         self.delete_table_data(conn,'today_lineup')
@@ -792,52 +833,118 @@ class Crawling_kbo(cb.Crawling):
             conn.close()
             print('error')
         '''
-        try:
-            for j, element in enumerate(self.elements):
-                if j < start_idx: continue
-                    
-                # last_game_num list 생성
+        
+        for j, element in enumerate(self.elements):
+            if j < start_idx: continue
                 
-                view = self.view_list[j]
+            
+            
+            view = self.view_list[j]
+            
+            # game_info 크롤링 및 저장
+            
+            self.craw_game_info(view)
+           
+            self.craw_team_game_info()
+            
+            
+            
+            if self.end == '경기종료': continue
+            if self.end == '경기중': continue
+        
+            elif '취소' in self.end: 
+                self.array_to_db(conn, self.game_info_array, 'today_game_info')
+                self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
                 
-                # game_info 크롤링 및 저장
-                self.craw_game_info(view)
-                self.craw_team_game_info()
+                for home_away in ['Home', 'Away']:
+                    team_num = self.home_away_num_dic[home_away]
+                    self.last_game_num_list[team_num]+=1
                 
                 
+            else:
                 
-                if self.end == '경기종료': continue
-                    
-                elif '취소' in self.end: 
-                    self.array_to_db(conn, self.game_info_array, 'today_game_info')
-                    self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
-                    for home_away in ['Home', 'Away']:
-                        team_num = self.home_away_num_dic[home_away]
-                        self.last_game_num_list[team_num]+=1
-                    
-                    
-                else:
-                    
-                    self.array_to_db(conn, self.game_info_array, 'today_game_info')
-                    self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
-                    
-                    
-                    self.ready_by_match(j,element,False)    
-                    
-                    for home_away in ['Home', 'Away']:
-                            
-                        self.craw_lineup(view,home_away)
-                        self.array_to_db(conn, self.lineup_array, 'today_lineup')
-    
-                        team_num = self.home_away_num_dic[home_away]
-                        self.last_game_num_list[team_num]+=1
-                    
+                self.array_to_db(conn, self.game_info_array, 'today_game_info')
+                self.array_to_db(conn, self.team_game_info_array,'today_team_game_info')
+                
+                
+                self.ready_by_match(j,element,False)    
+                
+                for home_away in ['Home', 'Away']:
                         
-            conn.commit()
-            conn.close()
+                    self.craw_lineup(view,home_away)
+                    self.array_to_db(conn, self.lineup_array, 'today_lineup')
+
+                    team_num = self.home_away_num_dic[home_away]
+                    self.last_game_num_list[team_num]+=1
+                    
+                    
+        conn.commit()
+        conn.close()
+        '''
         except:
             conn.rollback()
             conn.close()
             print('---start kbo error---')
+        '''
+    def end_game_crawling_practice(self):
+        '''
+        끝난 경기 데이터 크롤링
+        '''
+        self.set_craw_time(1)
+        year = self.date//10000
+    
+        self.ready_by_round()
+    
+    
+            
+        for j, element in enumerate(self.elements):
+            print(j)
+            # last_game_num list 생성
+            
+            view = self.view_list[j]
+            
+            # game_info 크롤링 및 저장
+            self.end = view.find('p',{'class':'staus'}).string
+            
+            
+            if self.end == '경기종료':
+                self.craw_game_info(view)
+                self.craw_team_game_info()
+    
+                self.ready_by_match(j,element,True) # 매치별 기본정보 구하기
+                
+                # score_record 크롤링 및 저장
+                
+                self.craw_score_array()
+                for home_away in ['Home', 'Away']:
+                    
+                    team_game_idx = self.team_game_idx_dic[home_away]
+                    
+                    # batter_record 크롤링 및 저장
+                    self.craw_batter_array(home_away)
+                    self.set_batter_array(team_game_idx)
+    
+                    
+                    # pitcher_record 크롤링 및 저장
+                    self.craw_pitcher_array(home_away)
+                    self.set_pitcher_array(team_game_idx) 
+    
+                    # 게임번호 +1
+                    team_num = self.home_away_num_dic[home_away]
+                    self.last_game_num_list[team_num]+=1
+    
+            
+            else: pass
+        
 #%%
-
+'''         
+c = Crawling_kbo()
+c.driver_start()
+c.date = 20220402
+url = 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate='
+c.driver.get(url + str(c.date))
+#%%
+c.end_game_crawling_practice()
+#%%
+len(c.view_list)
+'''

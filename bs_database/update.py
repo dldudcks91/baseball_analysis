@@ -32,8 +32,8 @@ class Update(db.Database):
         last_game_num_list = self.last_game_num_list
         
         old_array = np.zeros((1,9))
-        game_info_array = game_info_array[(game_info_array[:,2] == 2021),:]
-
+        game_info_array = game_info_array[(game_info_array[:,2] == 2022),:]
+        
         for i,team_game_info in enumerate(game_info_array):
             team_game_idx = team_game_info[1]
             year = team_game_idx[:4]
@@ -91,10 +91,14 @@ class Update(db.Database):
         
         for team_num in range(1,11):
             last_game_num = last_game_num_list[team_num]
-            graph_last_game_num = int(old_graph_array[(old_graph_array[:,1]=='2021')&(old_graph_array[:,2]==str(team_num)),:][-1,3])
+            old_team_array = old_graph_array[(old_graph_array[:,1]=='2022')&(old_graph_array[:,2]==str(team_num)),:]
+            if len(old_team_array) == 0:
+                graph_last_game_num = 0 
+            else:
+                graph_last_game_num = int(old_team_array[-1,3])
     
             for game_num in range(graph_last_game_num+1,last_game_num+1):
-                new_array = old_array[(old_array[:,2] == str(team_num).zfill(2))&(old_array[:,1]=='2021')&(old_array[:,3]==str(game_num).zfill(3)),:]
+                new_array = old_array[(old_array[:,2] == str(team_num).zfill(2))&(old_array[:,1]=='2022')&(old_array[:,3]==str(game_num).zfill(3)),:]
                 graph_array = np.vstack([graph_array,new_array])
         
         graph_array = graph_array[1:]
@@ -109,7 +113,7 @@ class Update(db.Database):
         
         
         old_array = np.zeros((1,6))
-        for year in range(2021,2022):
+        for year in range(2022,2023):
             for team_num in range(1,11):
                 
                 

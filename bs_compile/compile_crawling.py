@@ -2,6 +2,8 @@
 import sys
 sys.path.append('D:\\BaseballProject\\python')
 
+
+
 #%%
 
 import pymysql
@@ -22,8 +24,7 @@ Crawling_KBO
 경기 시작 전 라인업 가져오기: c.start_game_crawling
 
 '''
-
-
+#%%
 def craw_kbo(conn_type, date, url, game_type, start_idx = 0):
     
     ck.driver.get(url + str(date))
@@ -52,16 +53,19 @@ def click_next():
     
 ck = kbo.Crawling_kbo()
 
+
 ck.driver_start()
 
-ck.date = 20211009
+
+ck.date = 20220913
 
 url = 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate='
 craw_kbo('local',ck.date, url,'start', start_idx = 0)  
 ck.driver.close()
 
+#%%
 
-
+#%%
 
 #%%
 '''
@@ -91,6 +95,8 @@ for conn in [conn_local, conn_aws]:
     
     
 #%%
+
+    #%%
 
 '''
 Scheduling of today toto
@@ -146,7 +152,7 @@ def job_craw_startgame():
         craw_kbo(conn_type,ck.date, url,'start')  
         ck.driver.close()
 
-sched.add_job(job_craw_odds,'cron', minute = "20",id = 'odds')
+sched.add_job(job_craw_odds,'cron', minute = "10",id = 'odds')
 #sched.add_job(job_craw_endgame,'cron', hour = '23', minute = '00', id='endgame')
 #sched.add_job(job_craw_startgame,'cron', hour = '23', minute = '00', id='startgame')
 sched.start()
@@ -170,14 +176,14 @@ c.set_main()
 
         
 #%%
-year = 2021
+year = 2022
 
 error_list = list()
-while year<=2021:
+while year<=2022:
     c.set_year(year)    
-    game_round = 79
+    game_round = 41
     while True:
-    
+        
         try:
             while True:
                 c.set_round(game_round)
@@ -203,8 +209,16 @@ while year<=2021:
     year+=1
 #%%
 
+new_toto_array = c.toto_array
+#%%
+len(old_toto_array)
+
+#%%
+toto_array = np.vstack([old_toto_array[1:],new_toto_array[1:]])
+#%%
 toto_array = c.toto_array[1:,:]
-toto_array = toto_array[toto_array[:,7] == 1,:]
+#%%
+#toto_array = toto_array[toto_array[:,7] == 1,:]
 toto_array = np.hstack([toto_array[:,0].reshape(-1,1),toto_array[:,3:5],toto_array[:,7:]])
 #%%
 team_dic = {'LG':1,'롯데':2,'KIA':3,'삼성':4,'두산':5,'한화':6,'SK':7,'SSG':7,'키움':8,'넥센':8,'NC':9,'KT':10,'kt':10}
@@ -226,4 +240,7 @@ import pandas as pd
 toto_df = pd.DataFrame(toto_array)
 
 #%%
-toto_df.to_csv('C:\\Users\\Chan\\Desktop\\crawling_toto_baseball2021.csv',encoding = 'cp949')
+toto_df.to_csv('C:\\Users\\Chan\\Desktop\\crawling_toto_baseball20221.csv',encoding = 'cp949')
+
+#%%
+new_toto_array[:,1]
