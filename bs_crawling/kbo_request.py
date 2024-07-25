@@ -1,20 +1,19 @@
 #%%
 import sys
-sys.path.extend(['D:\BaseballProject\\python', 'C:\\Users\\82109\\Desktop\\LYC\\git\\baseball_analysis'])
 import requests
 from bs4 import BeautifulSoup 
 import json
 import time
 import pandas as pd
 import numpy as np
-from bs_crawling import base as cb
+
 from datetime import datetime, timedelta
 
 import pymysql
 from bs_personal import personal_code as cd
 #%%
 
-class Crawling_kbo_request(cb.Crawling):
+class Crawling_kbo_request():
     '''
     Class Crawling
     
