@@ -83,7 +83,7 @@ class Database(bs.Baseball):
         for i, data in enumerate(data_array):
             data_str = str(tuple(data))
             data_str = data_str.replace('None','Null')
-            sql = 'insert into' +' '+ table + ' ' + 'values' + data_str
+            sql = f'insert into {table} values {data_str}'
             cursor.execute(sql)
             
     def set_last_game_num_list(self,year,conn):
@@ -145,7 +145,7 @@ class Database(bs.Baseball):
             
         '''
         
-        engine = create_engine(db_address + code + file_address, encoding = 'utf-8')
+        engine = create_engine(db_address + code + file_address)#, encoding = 'utf-8')
         conn = engine.connect()
         self.team_info_array = np.array(pd.read_sql_table('team_info',conn))
         
@@ -195,5 +195,5 @@ class Database(bs.Baseball):
         
     def delete_table_data(self,conn,table_name):
         cursor = conn.cursor()
-        sql = 'delete from' + ' ' + table_name
+        sql = f'delete from {table_name}'
         cursor.execute(sql)

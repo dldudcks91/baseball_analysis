@@ -16,28 +16,30 @@ from bs_personal import personal_code as cd
 #%%
 d = db_update.Update()
 
-
+#%%
+YEAR = 2024
+#%%
 #%%
 '''
     크롤링한 데이터를 통해 최근 동향(run_graph) 데이터 갱신 및 team_info 테이블 update
 '''
 # run-graph-data
+
+
 conn_local  = pymysql.connect(host = cd.local_host, user = cd.local_user, password = cd.local_code , db = cd.db, charset = cd.charset)
-conn_aws = pymysql.connect(host = cd.aws_host, user = cd.aws_user, password = cd.aws_code , db = cd.db, charset = cd.charset)
+#conn_aws = pymysql.connect(host = cd.aws_host, user = cd.aws_user, password = cd.aws_code , db = cd.db, charset = cd.charset)
 
 d.load_data_all(db_address = cd.db_address ,code = cd.local_code , file_address = cd.file_address)
-d.set_last_game_num_list(2022,conn_local)
+d.set_last_game_num_list(YEAR,conn_local)
 
 sql = 'select * from run_graph_data'
 old_graph_array = np.array(d.fetch_sql(sql,conn_local))
-
-
-new_graph_array = d.get_recent_data(2022, old_graph_array)
+new_graph_array = d.get_recent_data(YEAR, old_graph_array)
 
 d.array_to_db(conn_local,new_graph_array,'run_graph_data')
-d.array_to_db(conn_aws,new_graph_array,'run_graph_data')
-conn_aws.commit()
-conn_aws.close()
+#d.array_to_db(conn_aws,new_graph_array,'run_graph_data')
+#conn_aws.commit()
+#conn_aws.close()
 
 conn_local.commit()
 conn_local.close()
@@ -45,9 +47,11 @@ conn_local.close()
 #%%
 #update_team_info
 conn_local  = pymysql.connect(host = cd.local_host, user = cd.local_user, password = cd.local_code , db = cd.db, charset = cd.charset)
+
+
 win_rate_list = d.get_new_win_rate(d.game_info_array, d.score_array)
 
-d.update_team_info(conn_local, 2022, win_rate_list, update_type = 'record')
+d.update_team_info(conn_local, YEAR, win_rate_list, update_type = 'record')
 conn_local.commit()
 conn_local.close()
 
@@ -118,7 +122,7 @@ try:
         local_list = list(local_array)
         for i, local in enumerate(local_list):
             local_list[i] = list(local)
-        d.update_team_info(conn_aws, 2022, local_list, 'local_to_aws')
+        d.update_team_info(conn_aws, YEAR, local_list, 'local_to_aws')
     conn_local.close()
     conn_aws.commit()
     conn_aws.close()

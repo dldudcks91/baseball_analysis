@@ -45,7 +45,7 @@ s = sp.Sample()
 
 # data dictionary 기본 세팅
 
-d.load_data_all(db_address = cd.db_address ,code = cd.local_code , file_address = cd.file_address)
+d.load_data_all(db_address = cd.db_address ,code = cd.aws_code , file_address = cd.file_aws_address)
 
 b.game_info_array = d.game_info_array
 b.batter_array = d.batter_array
@@ -69,10 +69,10 @@ b.is_epa_xr = False
 b.is_epa_sp = False
 b.is_epa_rp = False
 # 타격, 투수, 계투 경기 수 범위 설정
-br_range = [50]#[i for i in range(5,101,5)]#[50]#[30]#[50]
+br_range = [20]#[i for i in range(5,101,5)]#[50]#[30]#[50]
 sp_range = [i for i in range(1,21)]#[10]
-rp_range = [50]#[i for i in range(5,101,5)]#[50]#[50]#[30]"
-year_list = [i for i in range(2017,2022)]
+rp_range = [20]#[i for i in range(5,101,5)]#[50]#[50]#[30]"
+year_list = [i for i in range(2017,2025)]
 
 
 #%%
@@ -123,7 +123,7 @@ print(time.time() - start_time)
 a.br_range_list = br_range
 a.sp_range_list = sp_range
 a.rp_range_list = rp_range
-a.year_list = [i for i in range(2017,2022)]
+a.year_list = [i for i in range(2017,2025)]
            
 
 #%%
@@ -131,7 +131,7 @@ a.sr_type = 1
 a.xr_type = 0
 a.sp_type = 0
 s.random_state = 1
-a.len_model = 1
+a.len_model = 3
 
 #%%
 new_score_dic = dict()
@@ -172,9 +172,9 @@ a.sp_type = 0
 s.random_state = 10
 total_array = np.zeros((1,a.len_total))
 
-br = 50
+br = 20
 sr = 10
-rr = 50
+rr = 20
 
 for year in b.year_list:
     

@@ -12,9 +12,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import requests
 import chromedriver_autoinstaller
-#%%
 
-#%%
 # 계산 및 기타 library
 import datetime
 import pandas as pd
@@ -55,14 +53,14 @@ class Crawling(bs.Database):
             webdriver_options.add_argument('headless')
             
             try:
-                self.driver = webdriver.Chrome('C:\\Users\\Chan\\.conda\\envs\\baseball\\lib\\site-packages\\chromedriver_autoinstaller\\' + version +'\\chromedriver',options = webdriver_options)
+                self.driver = webdriver.Chrome(options = webdriver_options)
                 
             except:
                 chromedriver_autoinstaller.install()
                 
         else:
             try:
-                self.driver = webdriver.Chrome('C:\\Users\\Chan\\.conda\\envs\\baseball\\lib\\site-packages\\chromedriver_autoinstaller\\' + version +'\\chromedriver')
+                self.driver = webdriver.Chrome()
                 
             except:
                 chromedriver_autoinstaller.install()

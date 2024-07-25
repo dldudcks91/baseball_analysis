@@ -16,6 +16,8 @@ class Update(db.Database):
     '''
     
     def __init__(self):
+        self.start_year = 2024
+        self.end_year = 2024
         return
     
     def get_recent_data(self, year, old_graph_array):
@@ -32,7 +34,7 @@ class Update(db.Database):
         last_game_num_list = self.last_game_num_list
         
         old_array = np.zeros((1,9))
-        game_info_array = game_info_array[(game_info_array[:,2] == 2022),:]
+        game_info_array = game_info_array[(game_info_array[:,2] == year),:]
         
         for i,team_game_info in enumerate(game_info_array):
             team_game_idx = team_game_info[1]
@@ -113,7 +115,7 @@ class Update(db.Database):
         
         
         old_array = np.zeros((1,6))
-        for year in range(2022,2023):
+        for year in range(self.start_year, self.end_year+1):
             for team_num in range(1,11):
                 
                 

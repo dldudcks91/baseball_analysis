@@ -26,7 +26,7 @@ class Preprocess(bs.Database):
     
     len_total = len_info + len_run + len_xr + len_sp + len_rp
     
-    year_list = [i for i in range(2017,2023)]
+    year_list = [i for i in range(2017,2025)]
     
     def __init__(self):
         
@@ -488,7 +488,7 @@ class Preprocess(bs.Database):
             
             range_by_batter = range_array[name_array == name]
             
-            record_by_batter = range_by_batter[:,record_idx:].astype(np.float)
+            record_by_batter = range_by_batter[:,record_idx:].astype(np.float64)
             
             range_pa = record_by_batter[:,-2].reshape(-1,1)
             
@@ -554,7 +554,7 @@ class Preprocess(bs.Database):
         pa_array = team_record_array[:,-2].reshape(-1,1)
         
         result_array = np.divide(team_record_array, pa_array,out = np.zeros_like(team_record_array),where = pa_array!=0) # 타수당 XR로 환산
-        result_array = result_array.astype(np.float)
+        result_array = result_array.astype(np.float64)
         #result_array = np.where(result_array>=0.25,0.25,result_array)
         
         
@@ -669,7 +669,7 @@ class Preprocess(bs.Database):
         for inn in inn_array:
             inn_count = self.max_inn - self.min_inn + 1 - list(inn).count('-')
             inn_count_list.append(inn_count)
-            run = sum(np.where(inn=='-',0,inn).astype(np.int))
+            run = sum(np.where(inn=='-',0,inn).astype(np.int64))
             run_list.append(run)
         
         run_array = np.array(run_list).reshape(-1,1)
@@ -794,7 +794,7 @@ class Preprocess(bs.Database):
             len_range = len_sp
         
 
-        range_record = range_record_array[:, inn_idx:].astype(np.float)
+        range_record = range_record_array[:, inn_idx:].astype(np.float64)
         range_inn = range_record[:, 0].reshape(-1,1)        
         range_sum_inn = np.sum(range_inn)
         

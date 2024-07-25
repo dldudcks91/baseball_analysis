@@ -171,7 +171,7 @@ class Crawling_today_toto(cb.Crawling):
         
     def craw_toto_all(self, url_first, url_second, login_id, login_code):
         self.set_craw_time(2)
-        self.driver_start(is_headless = True)
+        self.driver_start()
         self.craw_odds_first(url_first)
         self.craw_odds_second(url_second, login_id, login_code)
         toto_array = np.zeros((1,10))

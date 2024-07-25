@@ -2,19 +2,20 @@
 
 
     
-aws_host = 'lyc-baseball.cgh18xdnf8rj.ap-northeast-2.rds.amazonaws.com'
-aws_user = 'LYC'
-aws_code = '3whddpdltm!'
+aws_host = '3.34.183.25'
+aws_user = 'lyc'
+aws_code = 'an98'
     
 local_host = 'localhost' 
 local_user = 'root'
-local_code = 'dudrn1'
+local_code = 'an98'
     
 db='baseball'
 charset='utf8'
 
-db_address = "mysql+pymysql://root:"
-file_address = "@127.0.0.1/baseball"
+db_address = f"mysql+pymysql://{aws_user}:"
+file_local_address = "@127.0.0.1/baseball"
+file_aws_address = f"@{aws_host}/baseball"
 
 
 ls_url = 'https://www.livescore.co.kr'

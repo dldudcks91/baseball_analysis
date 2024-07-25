@@ -157,7 +157,7 @@ class Analytics(pr.Preprocess):
         sp_type = self.sp_type
         # 선발투수 경기 수 구간에 맞는 데이터 추출
         recent_sp_idx = self.len_total - self.len_rp - 1
-        recent_sp_array = total_array[:,recent_sp_idx].astype(np.float)
+        recent_sp_array = total_array[:,recent_sp_idx].astype(np.float64)
         recent_sp_mask = (recent_sp_array >= self.min_recent_sp) & (recent_sp_array <= self.max_recent_sp)
         
         if sr_type == 1:
@@ -171,23 +171,23 @@ class Analytics(pr.Preprocess):
         
         #기본정보 제외한 분석용 데이터 열 추출
         record_array = total_array[:,self.len_info:]       
-        Y = record_array[:,:self.len_y].astype(np.float) # 종속변수 Y(n x 2): run, xr_run
+        Y = record_array[:,:self.len_y].astype(np.float64) # 종속변수 Y(n x 2): run, xr_run
         
         X = record_array[:,self.len_y:] # 독립변수 X(n x k)
         
         #pitcher name열 제외
         sp_name_idx = self.len_xr
         
-        X = np.hstack([X[:,:sp_name_idx],X[:,sp_name_idx+1:]]).astype(np.float)
+        X = np.hstack([X[:,:sp_name_idx],X[:,sp_name_idx+1:]]).astype(np.float64)
         
         # 타자, 투수 데이터 분리
-        batter_array = X[:,:self.len_xr].astype(np.float)
-        pitcher_array = X[:,self.len_xr:-9].astype(np.float)
+        batter_array = X[:,:self.len_xr].astype(np.float64)
+        pitcher_array = X[:,self.len_xr:-9].astype(np.float64)
         ground_array = X[:,-9:]
         xr_array = batter_array[:,-1].reshape(-1,1)
         # 선발, 계투 데이터 분리
-        sp_array = pitcher_array[:,:self.len_sp-1].astype(np.float)
-        rp_array = pitcher_array[:,self.len_sp-1:].astype(np.float)
+        sp_array = pitcher_array[:,:self.len_sp-1].astype(np.float64)
+        rp_array = pitcher_array[:,self.len_sp-1:].astype(np.float64)
         
         # 이닝 데이터 추출 및 최소값 설정
         inn = sp_array[:,0].reshape(-1,1)

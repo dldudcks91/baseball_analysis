@@ -60,7 +60,14 @@ ck.driver_start()
 ck.date = 20220913
 
 url = 'https://www.koreabaseball.com/Schedule/GameCenter/Main.aspx?gameDate='
-craw_kbo('local',ck.date, url,'start', start_idx = 0)  
+
+import datetime
+import time
+start_date = 20220913
+datetime.datetime.strptime(start_date,"%Y%m%d")
+
+
+craw_kbo('local',start_date, url,'end', start_idx = 0)  
 ck.driver.close()
 
 #%%
@@ -82,7 +89,7 @@ c.craw_toto_all(url_first = cd.ls_url, url_second = cd.f1_url, login_id = cd.f1_
 #%%
 conn_local  = pymysql.connect(host = cd.local_host, user = cd.local_user, password = cd.local_code , db = cd.db, charset = cd.charset)
 conn_aws = pymysql.connect(host = cd.aws_host, user = cd.aws_user, password = cd.aws_code , db = cd.db, charset = cd.charset)
-for conn in [conn_local, conn_aws]:
+ for conn in [conn_local, conn_aws]:
     cursor = conn.cursor()
     record_array = c.toto_array
     for i,data in enumerate(record_array):
