@@ -46,7 +46,7 @@ try:
     
     conn.commit()
     print(f"Success Delete start_game_data")
-except Exception as e:
+except pymysql.InterfaceError as e:
     conn.rollback()
     print(f"InterfaceError 발생: {e}")
 except Exception as e:
