@@ -1,6 +1,8 @@
 #%%
 
-
+aws_local_host = 'local_host'
+aws_local_user = 'lyc'
+aws_local_code = 'an98'
     
 aws_host = '3.34.183.25'
 aws_user = 'lyc'
