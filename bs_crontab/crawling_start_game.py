@@ -23,10 +23,14 @@ from bs_crawling import kbo_request as kr
 
 
 
+
+
 host = cd.aws_host
 user = cd.aws_user
 password = cd.aws_code
 db = cd.db
+today = (datetime.today() + timedelta(hours = 9)).date()
+
 
 ck = kr.Crawling_kbo_request()
 conn_aws = pymysql.connect(host = host, user = user, password= password, db= db, charset='utf8')
@@ -35,7 +39,7 @@ ck.set_last_game_num_list(ck.year,conn)
 conn.close()
 
 
-date_str = str(datetime.today().date()).replace("-","")
+date_str = str(today).replace("-","")
 date = int(date_str)
 ck.year = int(date_str[:4])
 ck.craw_game_info(date)
