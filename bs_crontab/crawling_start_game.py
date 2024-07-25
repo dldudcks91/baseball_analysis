@@ -23,13 +23,13 @@ from bs_crawling import kbo_request as kr
 
 
 
-host = cd.aws_local_host
-user = cd.aws_local_user
-password = cd.aws_local_code
-
+host = cd.aws_host
+user = cd.aws_user
+password = cd.aws_code
+db = cd.db
 
 ck = kr.Crawling_kbo_request()
-conn_aws = pymysql.connect(host = host, user = user, password= password, db= cd.db, charset='utf8')
+conn_aws = pymysql.connect(host = host, user = user, password= password, db= db, charset='utf8')
 conn = conn_aws
 ck.set_last_game_num_list(ck.year,conn)
 conn.close()
@@ -42,7 +42,7 @@ ck.craw_game_info(date)
 ck.craw_lineup(date)
 ck.set_date_start(date)
 #%%
-conn_aws = pymysql.connect(host = host, user = user, password= password, db= cd.db, charset='utf8')
+conn_aws = pymysql.connect(host = host, user = user, password= password, db= db, charset='utf8')
 conn = conn_aws
 try:
     ck.delete_table_data(conn, 'today_lineup')
@@ -60,7 +60,8 @@ finally:
     
     conn.close()
 #%%
-conn_aws = pymysql.connect(host = host, user = user, password= password, db= cd.db, charset='utf8')
+'''
+conn_aws = pymysql.connect(host = host, user = user, password= password, db= db, charset='utf8')
 conn = conn_aws
 try:
     ck.array_to_db(conn, ck.game_info_array, 'today_game_info')  
@@ -77,6 +78,7 @@ except Exception as e:
     
 finally:
     conn.close()
+'''
 
 
 
