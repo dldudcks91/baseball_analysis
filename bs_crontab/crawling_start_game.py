@@ -63,7 +63,7 @@ finally:
 
 print(ck.game_info_array.shape)
 print(ck.team_game_info_array.shape)
-print(ck.lineup.shape)
+print(ck.lineup_array.shape)
 conn_aws = pymysql.connect(host = host, user = user, password= password, db= db, charset='utf8')
 conn = conn_aws
 try:
