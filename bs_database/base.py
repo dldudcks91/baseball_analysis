@@ -88,7 +88,7 @@ class Database(bs.Baseball):
             data_str = str(tuple(data_list))
             data_str = data_str.replace('None','Null')
             sql = f'insert into {table} values {data_str}'
-            print(sql)
+            
             cursor.execute(sql)
             
     def set_last_game_num_list(self,year,conn):
