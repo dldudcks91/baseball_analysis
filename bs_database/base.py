@@ -80,8 +80,9 @@ class Database(bs.Baseball):
         '''
         cursor = conn.cursor()
         
-        data_list = list()
+        
         for data in data_array:
+            data_list = list()
             for d in data:
                 data_list.append(str(d))
             data_str = str(tuple(data_list))

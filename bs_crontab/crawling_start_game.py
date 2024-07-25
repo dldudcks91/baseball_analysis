@@ -73,14 +73,6 @@ except Exception as e:
 finally:
     conn.close()
 
-#%%
-data_list = list()
-for data in ck.game_info_array_array:
-    for d in data:
-        data_list.append(str(d))
-
-
-
 
 
 
