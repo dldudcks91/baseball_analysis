@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 
 import pymysql
 
-from bs_crawling import base as cb
+#from bs_crawling import base as cb
 from bs_personal import personal_code as cd
 from bs_crawling import kbo_request as kr
 
