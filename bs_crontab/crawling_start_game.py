@@ -46,6 +46,8 @@ ck.craw_game_info(date)
 ck.craw_lineup(date)
 ck.set_date_start(date)
 #%%
+print(datetime.now())
+#%%
 conn_aws = pymysql.connect(host = host, user = user, password= password, db= db, charset='utf8')
 conn = conn_aws
 try:
