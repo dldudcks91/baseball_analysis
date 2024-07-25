@@ -49,8 +49,7 @@ try:
 except pymysql.InterfaceError as e:
     conn.rollback()
     print(f"InterfaceError 발생: {e}")
-except Exception as e:
-    print(f"다른예외처리: {e}")
+
 finally:
     
     conn.close()
@@ -67,9 +66,7 @@ try:
 except pymysql.InterfaceError as e:
     conn.rollback()
     print(f"InterfaceError 발생: {e}")
-except Exception as e:
-    print(f"다른예외처리: {e}")
-    
+
 finally:
     conn.close()
 
