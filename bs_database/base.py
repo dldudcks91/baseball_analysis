@@ -80,8 +80,11 @@ class Database(bs.Baseball):
         '''
         cursor = conn.cursor()
         
-        for i, data in enumerate(data_array):
-            data_str = str(tuple(data))
+        data_list = list()
+        for data in data_array:
+            for d in data:
+                data_list.append(str(d))
+            data_str = str(tuple(data_list))
             data_str = data_str.replace('None','Null')
             sql = f'insert into {table} values {data_str}'
             cursor.execute(sql)
