@@ -11,9 +11,10 @@ from datetime import datetime, timedelta
 
 import pymysql
 from bs_personal import personal_code as cd
+from bs_database import base as bs
 #%%
 
-class Crawling_kbo_request():
+class Crawling_kbo_request(bs.Database):
     '''
     Class Crawling
     
