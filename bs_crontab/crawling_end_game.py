@@ -34,6 +34,7 @@ last_game_idx_tuple = ck.fetch_sql(sql,conn)
 last_game_idx = last_game_idx_tuple[0][0]
 last_game_date_str = last_game_idx[:8]
 #%%
+print(datetime.now())
 date_time = (datetime.strptime(last_game_date_str, "%Y%m%d") + timedelta(days = 1)).date()
 #%%
 
@@ -57,6 +58,7 @@ while date_time < end_date_time:
     print(date, ck.game_info_array.shape)
     
 #%%
+
 print(ck.game_info_array.shape)
 print(ck.team_game_info_array.shape)
 print(ck.batter_array.shape)
