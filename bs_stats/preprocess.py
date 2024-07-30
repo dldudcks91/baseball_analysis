@@ -461,7 +461,7 @@ class Preprocess(bs.Database):
         
         if self.is_new_game:
             end_idx = len(batter_array)
-            lineup_list = list(self.today_array[self.today_array[:,3] == team_num,-1])
+            lineup_list = list(self.today_array[self.today_array[:,3] == team_num,-2])
         else:
             end_idx = game_num_list[game_num]
             lineup_list = self.lineup_dic[year][team_num][game_num]
@@ -762,7 +762,8 @@ class Preprocess(bs.Database):
         
         if self.is_new_game:
             end_idx = len(pitcher_array)
-            lineup_list = list(self.today_array[self.today_array[:,3] == team_num,-1])
+            lineup_list = list(self.today_array[self.today_array[:,3] == team_num,-2])
+            
         else:
             end_idx = game_num_list[game_num]
             lineup_list = self.lineup_dic[year][team_num][game_num]
@@ -772,7 +773,7 @@ class Preprocess(bs.Database):
         
         
         name = lineup_list[0]
-        
+        print(year,team_num,game_num,name)
         total_range_array = pitcher_array[:end_idx]        
         name_array = total_range_array[:,name_idx]
         po_array = total_range_array[:,po_idx] # 1: 선발 2~: 계투
@@ -884,7 +885,11 @@ class Preprocess(bs.Database):
         
         
         result_array = np.hstack([name, range_sum_record, len_range]).reshape(-1)
-        self.len_sp = len(result_array[0])
+        
+        try:
+            self.len_sp = len(result_array[0])
+        except:
+            self.len_sp = len(result_array)
         
         return result_array #result_array(n x 1): ip:0, tbf:1, np:2, ab:3, h:4, hr:5, tbb:6, so:7, r:8, er:9, fip:10, fip_var:11 ,sp_len:12
     

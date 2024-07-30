@@ -180,7 +180,7 @@ class Database(bs.Baseball):
         '''
         
         
-        engine = create_engine(db_address + code + file_address ,encoding = 'utf-8')
+        engine = create_engine(db_address + code + file_address)
         conn = engine.connect()
         
         game_info_df = pd.read_sql_table(('today_game_info'),conn)

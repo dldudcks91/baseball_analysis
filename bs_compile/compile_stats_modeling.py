@@ -1,9 +1,9 @@
 #%%
 import sys
 
+import os
 
-
-sys.path.append('D:\\BaseballProject\\python')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 #%%
 import numpy as np
@@ -123,12 +123,12 @@ print(time.time() - start_time)
 a.br_range_list = br_range
 a.sp_range_list = sp_range
 a.rp_range_list = rp_range
-a.year_list = [i for i in range(2017,2025)]
+a.year_list = year_list
            
 
 #%%
-a.sr_type = 1
-a.xr_type = 0
+a.sr_type = 1 #sr_type = 0: 해당 sp_range까지 범위 // sr_type = 1: 무조건 같은 sp_range 
+a.xr_type = 0 #xr_type = 0: 모든 타격변수 // xr_type = 1: xr만 사용
 a.sp_type = 0
 s.random_state = 1
 a.len_model = 3
@@ -137,7 +137,7 @@ a.len_model = 3
 new_score_dic = dict()
 
 i = 0
-for random_state in range(1,11):
+for random_state in range(1,5):
     a.random_state = random_state
     a.set_total_params(range_data_dic,is_print = False)
     for br in br_range:
@@ -161,15 +161,21 @@ total_score_dic = a.total_score_dic
 total_params_list = a.total_params_list
 total_scale_list = a.total_scale_list
 total_data_len_dic = a.total_data_len_dic
+#%%
 
+
+import pickle
+
+with open('C:/Users/82109/Desktop/LYC/git/baseball_analysis/bs_crontab/total_params_list.pkl','wb') as f:
+    pickle.dump(total_params_list,f)
 #%%
 from pycaret.regression import *
 from pycaret.datasets import get_data
 
-a.sr_type = 0
-a.xr_type = 0
-a.sp_type = 0
-s.random_state = 10
+#a.sr_type = 0
+#a.xr_type = 0
+#a.sp_type = 0
+#s.random_state = 10
 total_array = np.zeros((1,a.len_total))
 
 br = 20
@@ -196,8 +202,8 @@ total_array = total_array[1:,:]
 
 
 
-train_array = total_array[total_array[:,3]<2021]
-test_array = total_array[total_array[:,3]==2021]
+train_array = total_array[total_array[:,3]<=2023]
+test_array = total_array[total_array[:,3]==2024]
 
     
 model_list = [list() for i in range(5)]
@@ -214,7 +220,7 @@ X = train_array[:,2:-1]
 Y_test = test_array[:,0].reshape(-1,1)
 X_test = test_array[:,2:-1]
 
-score_list = [list() for i in range(5)]
+score_list = [list() for i in range(3)]
 cv = KFold(5,shuffle =True,random_state= 13)
 gbr = GradientBoostingRegressor()
 xgb = XGBRegressor(n_estimators = 300, learning_rate = 0.1, reg_lambda = 3, reg_alpha = 3)
@@ -238,9 +244,10 @@ for (train_idx, valid_idx) in cv.split(X):
      '''
      new_model_list.append(sm.GLM(Y_train,X_train,family = sm.families.Gamma(link = sm.genmod.families.links.identity())).fit())
      new_model_list.append(sm.OLS(Y_train,X_train).fit())
-     new_model_list.append(HuberRegressor().fit(X_train, Y_train))
      new_model_list.append(Ridge().fit(X_train,Y_train))
-     new_model_list.append(gbr.fit(X_train,Y_train))
+     #new_model_list.append(HuberRegressor().fit(X_train, Y_train))
+     
+     #new_model_list.append(gbr.fit(X_train,Y_train))
      for i, model in enumerate(new_model_list):
          
          model_list[i].append(model)
@@ -256,7 +263,7 @@ for score in score_list:
 
 
 #%%
-for i in range(5):
+for i in range(3):
     score_list = list()
     for j in range(5):
         y_hat = model_list[i][j].predict(X_test)
@@ -285,7 +292,7 @@ np.mean(Y_valid - y_hat)
         
 #%%
 old_array = np.zeros((1,39))
-for i in range(4):
+for i in range(3):
     if i <=1:
         new_array = np.round(new_model_list[i].params,3)
     else:
@@ -294,8 +301,7 @@ for i in range(4):
 z = pd.DataFrame(old_array[1:])
 z.columns = X_columns
     #%%
-    b.sp_range = 30
-    b.sp_by_game(2022,1,115)
+   
     #%%
 from pycaret.regression import *
 from pycaret.datasets import get_data
@@ -308,8 +314,10 @@ run_xr = input_array[:,1]
 X = input_array[:,2:-1]
 train = np.hstack([run.reshape(-1,1),X])
 train_df = pd.DataFrame(train)
-train_df.columns = ['target'] + [str(i+1) for i in range(53)]
+train_df.columns = ['target'] + [str(i+1) for i in range(39)]
 train_df.columns
+
+
 #%%
 setup_reg = setup(data = train_df,target = 'target',fold =5,session_id = 1)
 #%%
@@ -329,24 +337,21 @@ cv = KFold(5,shuffle =True,random_state = 1)
 for i,j in cv.split(X):
     print(len(i))
     print(len(j))
-#%%
-from xgboost import plot_importance
-plot_importance(model)
-    
+
     
 
 #%%
 import time
 
-br = 50
-sr = 20
-rr = 50
+br = 20
+sr = 10
+rr = 20
 model_len = 3
 a.min_recent_sp = 0
 
 start_time = time.time()
 result_total_dic = dict()
-year_list = [i for i in range(2017,2023)]
+year_list = [i for i in range(2017,2025)]
 range_game_num = 150
 for year in year_list:
     result_total_list = [0] + [np.arange(1,b.max_game_dic[year][i]+1).reshape(-1,1) for i in range(1,11)]
@@ -394,12 +399,12 @@ for year in year_list:
             
             
             range_data = stat_data[:game_num,:-1]
-            x = stat_data[game_num,2:-1].reshape(1,-1).astype(np.float)
+            x = stat_data[game_num,2:-1].reshape(1,-1).astype(np.float64)
             
-            run = range_data[:,0].reshape(-1,1).astype(np.float)
+            run = range_data[:,0].reshape(-1,1).astype(np.float64)
         
-            Y = range_data[:,1].reshape(-1,1).astype(np.float)
-            X = range_data[:,-4:].astype(np.float)
+            Y = range_data[:,1].reshape(-1,1).astype(np.float64)
+            X = range_data[:,-4:].astype(np.float64)
             X = np.hstack([np.ones(len(X)).reshape(-1,1),X])
             
             sp_len =sp_len_data[game_num]
@@ -548,19 +553,21 @@ for year in year_list:
                 
     result_total_dic[year] = result_total_list
     print([year, time.time() - start_time])
-    
+#%%
+
+toto_dic = {year: [np.full((144,4),0.5) for i in range(11)] for year in range(2016,2025)}
+b.toto_dic = toto_dic
 
 
 #%%
-len_record = 3
+len_record = 2
 total_rate_list = [list() for i in range(len_record)]
 total_pred_count_list = [list() for i in range(len_record)]
 total_result_count_list = [list() for i in range(len_record)]
 for year in year_list:
     
     basic_list = b.game_info_dic[year]
-    b.set_toto_dic()
-
+    #b.set_toto_dic()
     if year ==2022:
         toto_list = b.toto_dic[2022]
         
@@ -579,18 +586,19 @@ for year in year_list:
         len_toto = len(toto_rate_array)
         basic_array = basic_list[team_num][:len_toto,:10]
         
-        new_logis = logis_model[(year-2017)*1440:(year-2016)*1440][(team_num-1)*144:team_num*144]
-        basic_list[team_num] = np.hstack([basic_array,toto_rate_array,result_total_dic[year][team_num][:len_toto,1:],new_logis])
-        #basic_list[team_num] = np.hstack([basic_array,np.ean(basic_list[team_num][:,11:],axis = 1).reshape(-1,1)])
-        total_basic_array = np.vstack([total_basic_array,basic_list[team_num][:,-3:]])
+        #new_logis = logis_model[(year-2017)*1440:(year-2016)*1440][(team_num-1)*144:team_num*144]
+        basic_list[team_num] = np.hstack([basic_array,toto_rate_array,result_total_dic[year][team_num][:len_toto,1:]])
+        #basic_list[team_num] = basic_array #np.hstack([basic_array,np.mean(basic_list[team_num][:,11:],axis = 1).reshape(-1,1)])
+        
+        #total_basic_array = np.vstack([total_basic_array,basic_list[team_num][:,-3:]])
     
-    new_range_list = ["toto","LYC","Logistic"]
+    new_range_list = ["toto","LYC"]
     
     
     
     result_idx = 9
         
-    for j, num in enumerate(range(result_idx+1, len_record + result_idx + 1)):
+    for j, num in enumerate(range(result_idx + 1, len_record + result_idx + 1)):
         
         year_count = 0
         year_correct_count = 0
@@ -608,9 +616,9 @@ for year in year_list:
             
             record_team = basic_list[team_num][10:]
             record_team = record_team[record_team[:,result_idx]!=0.5,:]
-            Y = record_team[:,result_idx].reshape(-1,1).astype(np.int)
+            Y = record_team[:,result_idx].reshape(-1,1).astype(np.int64)
             
-            X = record_team[:,num].reshape(-1,1).astype(np.float)
+            X = record_team[:,num].reshape(-1,1).astype(np.float64)
             
             new_array = np.hstack([Y,X])
             year_array = np.vstack([year_array,new_array])
@@ -697,7 +705,7 @@ for j in range(len_record):
         new = np.round(new_result[i] / new_pred[i],3)
         new_pred_rate[i] = new
 
-    Y = new_rate[:,0].astype(np.int)
+    Y = new_rate[:,0].astype(np.int64)
     X = new_rate[:,1]
     win_count_mask = X > 0.5
     wc_array = np.where(win_count_mask,1,0)
@@ -772,7 +780,7 @@ for year in range(2017,2022):
      Y_train = Y[train_idx].astype(np.int)
      Y_valid = Y[valid_idx]
      
-     `  
+       
      
      pf_list = list()
      '''

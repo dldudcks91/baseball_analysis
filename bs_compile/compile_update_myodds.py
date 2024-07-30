@@ -20,10 +20,15 @@ from bs_stats import analytics as an
 
 import datetime
 #%%
+import pickle
+
+with open('C:/Users/82109/Desktop/LYC/git/baseball_analysis/bs_crontab/total_params_list.pkl','rb') as f:
+    total_params_list = pickle.load(f)
+#%%
 a = an.Analytics()
 s = sp.Sample()
 d = bs.Database()
-d.load_data_all(db_address = cd.db_address, code = cd.local_code, file_address = cd.file_address)
+d.load_data_all(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
 
 #%%
 b = pr.Preprocess() 
@@ -47,35 +52,39 @@ b.is_epa_xr = True
 b.is_epa_sp = False
 b.is_epa_rp = False
 # 타격, 투수, 계투 경기 수 범위 설정
-br_range = [100]#[1] + [i for i in range(5,101,5)]#[50]#[30]#[50]
+br_range = [20]#[1] + [i for i in range(5,101,5)]#[50]#[30]#[50]
 sp_range = [i for i in range(1,21)]
-rp_range = [50]#[50]#[30]
+rp_range = [20]#[50]#[30]
 a.sr_type = 1
 a.xr_type = 0
-a.sp_type = 1
+a.sp_type = 0
 b.set_rp_data_dic()
+#%%
+br = 20
+sr = 10
+rr = 20
 #%%
 
 #%%
-b.load_today_array(db_address = cd.db_address, code = cd.local_code, file_address = cd.file_address)
+b.load_today_array(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
 lineup_record = [0]
 #%%
 idx = pd.isnull(b.today_array[:,-1])
 new_idx = idx == False
 b.today_array = b.today_array[new_idx]
 #%%
-
+team_num = 1
+z = b.today_array
+zz = list(b.today_array[b.today_array[:,3] == team_num,-1])
 
 #%%
 for i in range(1,11):
-    try:
-        game_num = b.today_array[b.today_array[:,3]==i,5][0]
-        lineup_record.append([b.xr_by_game(2022,i,game_num),b.sp_by_game(2022,i,game_num).reshape(-1),b.rp_by_game(2022,i,game_num)])
-    except:
-        lineup_record.append(0)
     
-        
+    game_num = b.today_array[b.today_array[:,3]==i,5][0]
+    lineup_record.append([b.xr_by_game(2024,i,game_num),b.sp_by_game(2024,i,game_num).reshape(-1),b.rp_by_game(2024,i,game_num)])
     
+
+
         
 #%%
 def get_new_input(lineup_record, ground_array, team_num, foe_num, is_home, xr_type = 0, sp_type = 0):
@@ -84,8 +93,10 @@ def get_new_input(lineup_record, ground_array, team_num, foe_num, is_home, xr_ty
         
         
         foe_list = lineup_record[foe_num]
-        sp_array = foe_list[1][1:].astype(np.float).reshape(1,-1)
-        rp_array = foe_list[2].astype(np.float).reshape(1,-1)
+        sp_array = foe_list[1][1:].astype(np.float64).reshape(1,-1)
+        rp_array = foe_list[2].astype(np.float64).reshape(1,-1)
+        
+        
         
         
         
@@ -153,6 +164,7 @@ def get_new_input(lineup_record, ground_array, team_num, foe_num, is_home, xr_ty
         
         x_sp = x_sp[:,:-5]
         x_rp = x_rp[:,:-3]
+        
         X = np.hstack([x_batter, x_sp, x_rp, X_home, ground_array, sp_len])
         X = np.hstack([np.ones(len(X)).reshape(-1,1),X])
         
@@ -178,6 +190,8 @@ toto_array = np.zeros((1,10))
 
 sr_type = a.sr_type
 
+MODEL_CV = 1
+
 for game_info in b.today_game_info:
     date = game_info[0][:8]
     time = game_info[4]
@@ -201,19 +215,23 @@ for game_info in b.today_game_info:
     
     
     away_input = get_new_input(lineup_record, ground_array, away_num, home_num, is_home = False, xr_type = a.xr_type, sp_type = a.sp_type)
+    
     sp_len = away_input[0,-1]
     if sp_len <=1: sp_len = 1
     away_run = 0
     for i, total_params in enumerate(total_params_list):
-        for j in range(5):
+        for j in range(MODEL_CV):
+            
+            
             if sr_type == 0:
-                new_run = total_params[br,sr,rr][j].predict(away_input[:,:-1])
+                model = total_params[br,sr,rr][j]
+                new_run = np.dot(away_input[:,:-1],model)
                 
                 
-                
+    
             else:
-                
-                new_run= total_params[br,sp_len,rr][j].predict(away_input[:,:-1])
+                model = total_params[br,sp_len,rr][j]
+                new_run = np.dot(away_input[:,:-1],model)
             if new_run<=2:
                 new_run = 2    
             if new_run>= 8:
@@ -221,7 +239,7 @@ for game_info in b.today_game_info:
             
             away_run+= new_run
             
-    away_run = np.round(away_run/((i+1)*5),3)
+    away_run = np.round(away_run/((i+1)*MODEL_CV ),3)
     
     
     if b.park_factor_total.get(ground)!=None:
@@ -245,21 +263,23 @@ for game_info in b.today_game_info:
     if sp_len <=1: sp_len = 1
     home_run = 0
     for i, total_params in enumerate(total_params_list):
-        for j in range(5):
+        for j in range(MODEL_CV ):
             if sr_type == 0:
-                new_run = total_params[br,sr,rr][j].predict(home_input[:,:-1])
-                 
-  
-            else:
-                new_run = total_params[br,sp_len,rr][j].predict(home_input[:,:-1])
+                model = total_params[br,sr,rr][j]
+                new_run = np.dot(home_input[:,:-1],model)
                 
+                
+    
+            else:
+                model = total_params[br,sp_len,rr][j]
+                new_run = np.dot(home_input[:,:-1],model)
             if new_run<=2:
                 new_run = 2   
             if new_run >=8:
                 new_run = 8
             home_run+= new_run
                 
-    home_run = np.round(home_run/((i+1)*5),3)
+    home_run = np.round(home_run/((i+1)*MODEL_CV ),3)
     
     
     
@@ -304,7 +324,7 @@ print(np.array(lineup_record))
 #%%
 print(toto_array)
 #%%
-conn_local = pymysql.connect(host= cd.local_host, user=cd.local_user, password= cd.local_code, db= cd.db, charset='utf8')
+#onn_local = pymysql.connect(host= cd.local_host, user=cd.local_user, password= cd.local_code, db= cd.db, charset='utf8')
 conn_aws = pymysql.connect(host = cd.aws_host, user = cd.aws_user, password = cd.aws_code , db = cd.db, charset = cd.charset)
 
 #c.set_last_game_num_list(2021,conn)
