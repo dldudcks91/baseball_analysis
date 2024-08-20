@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import pandas as pd
 import pymysql
-from sqlalchemy import create_engine
+
 from bs_database import base as bs
 
 from bs_stats import preprocess as pr
