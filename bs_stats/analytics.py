@@ -4,12 +4,15 @@ import sys
 import os 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
+
 import statsmodels.api as sm
 from sklearn.model_selection import KFold
 
+from sklearn.linear_model import Ridge #LogisticRegression, LinearRegression, HuberRegressor, Lasso, BayesianRidge
+
 from bs_stats import sample as sp
 from bs_stats import preprocess as pr
-from xgboost import XGBRegressor
+
 
 #%%
 s = sp.Sample()
@@ -260,7 +263,7 @@ class Analytics(pr.Preprocess):
         total_scale_list = [dict() for i in range(self.len_model)]
         total_score_dic = dict()
         total_data_len_dic = dict()
-        xgb = XGBRegressor(n_estimators = 500, learning_rate = 0.1, random_state = 1)
+        #xgb = XGBRegressor(n_estimators = 500, learning_rate = 0.1, random_state = 1)
         #gbr = GradientBoostingRegressor()
         for br in self.br_range_list:
             for sr in self.sp_range_list:
