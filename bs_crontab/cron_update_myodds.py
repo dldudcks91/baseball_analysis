@@ -34,6 +34,7 @@ s = sp.Sample()
 d = bs.Database()
 d.load_data_all(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
 
+print('success load data all')
 #%%
 
 #%%
