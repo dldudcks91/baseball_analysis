@@ -118,13 +118,11 @@ print(time.time() - start_time)
 #home_array(n x 7) = hXR, aInn, aSp_era, aSp_fip, aSp_len, aRp_era, aRp_fip
 
 #%%
-
-#%%
 a.br_range_list = br_range
 a.sp_range_list = sp_range
 a.rp_range_list = rp_range
 a.year_list = year_list
-           
+
 
 #%%
 a.sr_type = 1 #sr_type = 0: 해당 sp_range까지 범위 // sr_type = 1: 무조건 같은 sp_range 
@@ -163,11 +161,27 @@ total_scale_list = a.total_scale_list
 total_data_len_dic = a.total_data_len_dic
 #%%
 
-
+#parameter 계수값 떼서 파일로 저장하는 함수
+new_total_params_list= list()
+for model_idx, total_params in enumerate(total_params_list):
+    
+    new_total_params_dic = dict()
+    for key, values in total_params.items():
+        model_list = list()
+        for model in values:
+            if model_idx in (0,1):
+                model_list.append(model.params)
+            else:
+                model.coef_[0] = model.intercept_
+                model_list.append(model.coef_)
+        new_total_params_dic[key] = model_list
+    new_total_params_list.append(new_total_params_dic)
+                
+#%%
 import pickle
 
 with open('C:/Users/82109/Desktop/LYC/git/baseball_analysis/bs_crontab/total_params_list.pkl','wb') as f:
-    pickle.dump(total_params_list,f)
+    pickle.dump(new_total_params_list,f)
 #%%
 from pycaret.regression import *
 from pycaret.datasets import get_data
@@ -300,9 +314,9 @@ for i in range(3):
     old_array = np.vstack([old_array,new_array])
 z = pd.DataFrame(old_array[1:])
 z.columns = X_columns
-    #%%
+#%%
    
-    #%%
+
 from pycaret.regression import *
 from pycaret.datasets import get_data
 #%%

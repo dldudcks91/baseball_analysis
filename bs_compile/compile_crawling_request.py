@@ -35,7 +35,7 @@ last_game_date_str = last_game_idx[:8]
 #%%
 ck.set_last_game_num_list(ck.year,conn) #ck.last_num_list = [0 for i in range(10)]#
 date_time = datetime.strptime(last_game_date_str, "%Y%m%d") + timedelta(days = 1)
-end_date = 20240726
+end_date = 20240814
 end_date_time = datetime.strptime(str(end_date),"%Y%m%d")
 while date_time < end_date_time:
     date_str = date_time.strftime("%Y%m%d")
@@ -169,4 +169,3 @@ ck.update_team_info(conn, YEAR, win_rate_list, update_type = 'record')
 conn.commit()
 conn.close()
 #%%
-z = ck.score_array

@@ -24,8 +24,11 @@ import datetime
 #%%
 import pickle
 
-with open('C:/Users/82109/Desktop/LYC/git/baseball_analysis/bs_crontab/total_params_list.pkl','rb') as f:
+
+with open(cd.total_param_list_url,'rb') as f:
     total_params_list = pickle.load(f)
+    #%%
+    
 #%%
 a = an.Analytics()
 s = sp.Sample()
