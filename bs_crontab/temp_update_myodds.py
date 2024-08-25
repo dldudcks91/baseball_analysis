@@ -27,7 +27,7 @@ from sqlalchemy import create_engine
 import pickle
 
 
-with open(cd.total_param_list_url,'rb') as f:
+with open('total_param_list.pkl','rb') as f:
     total_params_list = pickle.load(f)
     #%%
     
@@ -47,4 +47,4 @@ engine = create_engine(cd.db_address + cd.aws_code + cd.file_aws_address)#, enco
 conn = engine.connect()
 team_info_array = np.array(pd.read_sql_table('team_info',conn))
 conn.close()
-
+print(team_info_array.shape)
