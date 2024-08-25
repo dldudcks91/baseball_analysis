@@ -65,7 +65,6 @@ print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 
 # print('success load data all')
 
-#%%
 b = pr.Preprocess() 
 
 b.game_info_array = d.game_info_array
