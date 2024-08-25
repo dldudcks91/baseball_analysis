@@ -34,6 +34,7 @@ with open('total_params_list.pkl','rb') as f:
 a = an.Analytics()
 s = sp.Sample()
 d = bs.Database()
+b = pr.Preprocess() 
 #%%
 process = psutil.Process()
 memory_info = process.memory_info()
@@ -63,12 +64,6 @@ print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 # print(time.time() - start_time)
 
 # print('success load data all')
-#%%
-
-z1 = d.game_info_array
-z2 = d.batter_array
-z3 = d.pitcher_array
-z4 = d.score_array
 
 #%%
 b = pr.Preprocess() 
