@@ -79,7 +79,7 @@ b.is_new_game = True
 b.is_iv = False
 
 #%%
-
+b.year_list = [2024]
 b.is_park_factor = True
 b.is_pa = False
 b.is_epa_xr = True
