@@ -42,9 +42,20 @@ memory_info = process.memory_info()
 print(f"RSS (Resident Set Size): {memory_info.rss / (1024 * 1024):.2f} MB")
 print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 #%%
-
+year = 2024
 engine = create_engine(cd.db_address + cd.aws_code + cd.file_aws_address)#, encoding = 'utf-8')
 conn = engine.connect()
 team_info_array = np.array(pd.read_sql_table('team_info',conn))
-conn.close()
+
 print(team_info_array.shape)
+#%%
+start_game_idx = year * 10000000000
+start_team_game_idx = year * 100000
+
+
+
+game_info_query = f'SELECT game_idx, stadium from game_info where game_idx >= {start_game_idx}'
+game_info_df = pd.read_sql(game_info_query, conn)
+game_info_df = pd.read_sql_table(('game_info'),conn)[['game_idx','stadium']]
+print(game_info_df.shape)
+conn.close()
