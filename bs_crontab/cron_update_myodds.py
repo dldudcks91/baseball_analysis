@@ -26,11 +26,11 @@ import time
 import pickle
 
 
-with open('total_params_list.pkl','rb') as f:
-    total_params_list = pickle.load(f)
-    
-# with open(cd.total_param_list_url,'rb') as f:
+# with open('total_params_list.pkl','rb') as f:
 #     total_params_list = pickle.load(f)
+    
+with open(cd.total_param_list_url,'rb') as f:
+    total_params_list = pickle.load(f)
     #%%
     
 #%%
@@ -46,8 +46,8 @@ print(f"RSS (Resident Set Size): {memory_info.rss / (1024 * 1024):.2f} MB")
 print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 
 #%%
-#d.load_data_this_year(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address, year = 2024)
-d.load_data_all(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
+d.load_data_this_year(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address, year = 2024)
+#d.load_data_all(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
 process = psutil.Process()
 memory_info = process.memory_info()
 
@@ -69,7 +69,7 @@ print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 # print('success load data all')
 
 b = pr.Preprocess() 
-
+b.year_list = [2024]
 b.game_info_array = d.game_info_array
 b.batter_array = d.batter_array
 b.pitcher_array = d.pitcher_array
@@ -77,17 +77,11 @@ b.score_array = d.score_array
 
 b.set_dic_all()
 #%%
-z1 = d.game_info_array
-z2 = d.batter_array
-z3 = d.pitcher_array
-z4 = d.score_array
 
 #%%
 b.is_new_game = True
 b.is_iv = False
 
-#%%
-b.year_list = [2024]
 b.is_park_factor = True
 b.is_pa = False
 b.is_epa_xr = True

@@ -198,12 +198,13 @@ class Database(bs.Baseball):
 
         team_game_info_query = f'SELECT * from team_game_info where team_game_idx >= {start_team_game_idx}'
         team_game_info_df = pd.read_sql(team_game_info_query, conn)
-        game_info = pd.merge(game_info_df, team_game_info_df, on = 'game_idx',how = 'left')
+        game_info = pd.merge(team_game_info_df, game_info_df,  on = 'game_idx',how = 'left')
         self.game_info_array = np.array(game_info)
         
         
-        score_df = pd.read_sql_table('score_record',conn)
+        
         score_query = f'SELECT * from score_record where team_game_idx >= {start_team_game_idx}'
+        score_df = pd.read_sql(score_query, conn)
         self.score_array = np.array(pd.merge(game_info , score_df, on = 'team_game_idx',how = 'left'))
         
         
