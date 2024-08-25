@@ -28,13 +28,16 @@ import pickle
 
 with open('total_params_list.pkl','rb') as f:
     total_params_list = pickle.load(f)
+    
+# with open(cd.total_param_list_url,'rb') as f:
+#     total_params_list = pickle.load(f)
     #%%
     
 #%%
 a = an.Analytics()
 s = sp.Sample()
 d = bs.Database()
-b = pr.Preprocess() 
+
 #%%
 process = psutil.Process()
 memory_info = process.memory_info()
@@ -43,8 +46,8 @@ print(f"RSS (Resident Set Size): {memory_info.rss / (1024 * 1024):.2f} MB")
 print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 
 #%%
-d.load_data_this_year(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address, year = 2024)
-#d.load_data_all(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
+#d.load_data_this_year(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address, year = 2024)
+d.load_data_all(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
 process = psutil.Process()
 memory_info = process.memory_info()
 
@@ -73,6 +76,11 @@ b.pitcher_array = d.pitcher_array
 b.score_array = d.score_array
 
 b.set_dic_all()
+#%%
+z1 = d.game_info_array
+z2 = d.batter_array
+z3 = d.pitcher_array
+z4 = d.score_array
 
 #%%
 b.is_new_game = True
@@ -102,6 +110,8 @@ rr = 20
 #%%
 b.load_today_array(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
 lineup_record = [0]
+
+print('complete get lineup_record')
 #%%
 idx = pd.isnull(b.today_array[:,-1])
 new_idx = idx == False
@@ -115,7 +125,6 @@ for i in range(1,11):
     lineup_record.append([b.xr_by_game(2024,i,game_num),b.sp_by_game(2024,i,game_num).reshape(-1),b.rp_by_game(2024,i,game_num)])
     
 
-print('complete get lineup_record')
         
 #%%
 def get_new_input(lineup_record, ground_array, team_num, foe_num, is_home, xr_type = 0, sp_type = 0):

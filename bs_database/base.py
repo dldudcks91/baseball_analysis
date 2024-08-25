@@ -204,7 +204,6 @@ class Database(bs.Baseball):
         
         score_df = pd.read_sql_table('score_record',conn)
         score_query = f'SELECT * from score_record where team_game_idx >= {start_team_game_idx}'
-        score_df = pd.read_sql(team_game_info_query, conn)
         self.score_array = np.array(pd.merge(game_info , score_df, on = 'team_game_idx',how = 'left'))
         
         
