@@ -26,11 +26,11 @@ import time
 import pickle
 
 
-# with open('total_params_list.pkl','rb') as f:
-#     total_params_list = pickle.load(f)
-    
-with open(cd.total_param_list_url,'rb') as f:
+with open('total_params_list.pkl','rb') as f:
     total_params_list = pickle.load(f)
+    
+# with open(cd.total_param_list_url,'rb') as f:
+#     total_params_list = pickle.load(f)
     #%%
     
 #%%
