@@ -170,6 +170,54 @@ class Database(bs.Baseball):
         self.pitcher_array = np.array(pd.merge(game_info , pitcher_df, on = 'team_game_idx',how = 'left'))
         
         conn.close()
+        
+    def load_data_this_year(self, db_address, code, file_address, year):
+        '''
+        
+        baseball DataBase에 있는 해당 년도 테이블 불러오기
+        
+        Load to Record of team_game_info / batter / pitcher / score by Mysql
+        
+        Set game_info_array / batter_array / pitcher_array / score_array
+        
+            
+        '''
+        
+        engine = create_engine(db_address + code + file_address)#, encoding = 'utf-8')
+        conn = engine.connect()
+        self.team_info_array = np.array(pd.read_sql_table('team_info',conn))
+        
+        start_game_idx = year * 10000000000
+        start_team_game_idx = year * 100000
+        
+        
+        
+        game_info_query = f'SELECT game_idx, stadium from game_info where game_idx >= {start_game_idx}'
+        game_info_df = pd.read_sql(game_info_query, conn)
+#        game_info_df = pd.read_sql_table(('game_info'),conn)[['game_idx','stadium']]
+
+        team_game_info_query = f'SELECT * from team_game_info where team_game_idx >= {start_team_game_idx}'
+        team_game_info_df = pd.read_sql(team_game_info_query, conn)
+        game_info = pd.merge(game_info_df, team_game_info_df, on = 'game_idx',how = 'left')
+        self.game_info_array = np.array(game_info)
+        
+        
+        score_df = pd.read_sql_table('score_record',conn)
+        score_query = f'SELECT * from score_record where team_game_idx >= {start_team_game_idx}'
+        score_df = pd.read_sql(team_game_info_query, conn)
+        self.score_array = np.array(pd.merge(game_info , score_df, on = 'team_game_idx',how = 'left'))
+        
+        
+        
+        batter_query = f'SELECT * from batter_record where team_game_idx >= {start_team_game_idx}'
+        batter_df = pd.read_sql(batter_query, conn)
+        self.batter_array = np.array(pd.merge(game_info , batter_df, on = 'team_game_idx',how = 'left'))
+        
+        pitcher_query = f'SELECT * from pitcher_record where team_game_idx >= {start_team_game_idx}'
+        pitcher_df = pd.read_sql(pitcher_query, conn)
+        self.pitcher_array = np.array(pd.merge(game_info , pitcher_df, on = 'team_game_idx',how = 'left'))
+        
+        conn.close()
     
     def load_today_array(self,db_address, code, file_address):
         
