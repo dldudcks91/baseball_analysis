@@ -20,6 +20,8 @@ from bs_personal import personal_code as cd
 from bs_stats import analytics as an
 
 import datetime
+import psutil
+import time
 #%%
 import pickle
 
@@ -33,8 +35,11 @@ a = an.Analytics()
 s = sp.Sample()
 d = bs.Database()
 #%%
-import psutil
-import time
+process = psutil.Process()
+memory_info = process.memory_info()
+
+print(f"RSS (Resident Set Size): {memory_info.rss / (1024 * 1024):.2f} MB")
+print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 
 #%%
 d.load_data_this_year(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address, year = 2024)
