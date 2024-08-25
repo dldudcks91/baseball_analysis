@@ -362,6 +362,6 @@ conn_aws = pymysql.connect(host = cd.aws_host, user = cd.aws_user, password = cd
 #c.set_last_game_num_list(2021,conn)
 
 #%%  M
-d.insert_table(conn_aws, 'today_toto',toto_array)
+d.array_to_db(conn_aws, toto_array, 'today_toto')
 conn_aws.commit()
 conn_aws.close()
