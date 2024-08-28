@@ -11,15 +11,19 @@ import numpy as np
 import time
 from datetime import datetime
 #from bs_crawling import base as cb
+
+from sqlalchemy import create_engine
 #%%
 
+
+#%%
 result_list = list()
 
 session = requests.session()
 
 
 game_round = 0
-start_game_info_master_seq  = 26600 #2024년의 start_game_infO_master_seq는 26153
+start_game_info_master_seq  = 27400#26600 #2024년의 start_game_infO_master_seq는 26153
 game_info_master_seq_dic = dict()
 error_dic = dict()
 
@@ -36,7 +40,6 @@ for i, game_info_master_seq in enumerate(range(start_game_info_master_seq, start
                 
     response = requests.get(f'https://www.wisetoto.com/util/gameinfo/get_proto_list.htm?game_category=pt1&game_year=2024&game_round={game_round}&game_month=&game_day=&game_info_master_seq={game_info_master_seq}&sports=&sort=&tab_type=proto',
                     headers = headers)
-
 
 
     soup = BeautifulSoup(response.text,'html.parser')  
@@ -61,25 +64,43 @@ for i, game_info_master_seq in enumerate(range(start_game_info_master_seq, start
     #print(game_round, len(round_dic[game_round]))
     #time.sleep(0.5)
     today = datetime.now()
-    date_str = str(today.year) + str(today.month) + str(today.day)
-    time_str = str(today.hour) + ":" + str(today.minute)
+    date_str = str(today.year) + str(today.month).zfill(2) + str(today.day).zfill(2)
+    time_str = str(today.hour).zfill(2) + ":" + str(today.minute).zfill(2)
     for result in result_list:
-        result['date'] = date_str
-        result['time'] = time_str
-    print(game_info_master_seq, len(result_list))
+        result['craw_date'] = date_str
+        result['craw_time'] = time_str
+    print(game_info_master_seq, len(result_list), response.status_code)
     game_info_master_seq_dic[game_info_master_seq] = len(result_list)
     
     #%%
     
-    import pandas as pd
+
+
+z = pd.DataFrame(result_list)
+zz = z[z.is_odds == True]
+zz['site_name'] = 'livescore'
+zzz = zz[['date','game_time','site_name','handi_num','away_name','home_name','away_rate','home_rate','handi_score','craw_time']]
+
+mysql_columns = ['date','time','site_name','win_type','away_name','home_name','away_odds','home_odds','handicap','craw_time']
+zzz.columns = mysql_columns
+
+
+#%%
+from bs_personal import personal_code as cd
+db_address = cd.db_address
+code = cd.aws_code
+file_address = cd.file_aws_address
+engine = create_engine(db_address + code + file_address)#, encoding = 'utf-8')
+
+zzz = zzz.drop_duplicates(subset = ['date','time','site_name','win_type','away_name','home_name','craw_time'])
+#%%
+zzz.to_sql('today_toto',con = engine, if_exists = 'append', index = False)
+
+
+
+
     
-    z = pd.DataFrame(result_list)
-    zz = z[z.is_odds == True]
-    
-    #%%
-    
-    
-    
+
     
     
     
@@ -111,6 +132,9 @@ def find_data_by_game(game_list):
             date = int(str(year) + month + day)
             
             new_dic['date'] = date
+            
+            game_time = string[-5:]
+            new_dic['game_time'] = game_time
         
         # 종목
         elif i == 2:

@@ -6,6 +6,7 @@ sys.path.append('D:\\BaseballProject\\python')
 import numpy as np
 import pandas as pd
 import pymysql
+from datetime import datetime
 from sqlalchemy import create_engine
 
 import bs_stats.base as bs
@@ -195,10 +196,14 @@ class Database(bs.Baseball):
         game_info_query = f'SELECT game_idx, stadium from game_info where game_idx >= {start_game_idx}'
         game_info_df = pd.read_sql(game_info_query, conn)
 #        game_info_df = pd.read_sql_table(('game_info'),conn)[['game_idx','stadium']]
-
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load game_info_df')
+        
         team_game_info_query = f'SELECT * from team_game_info where team_game_idx >= {start_team_game_idx}'
         team_game_info_df = pd.read_sql(team_game_info_query, conn)
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load team_game_info_df')
+        
         game_info = pd.merge(team_game_info_df, game_info_df,  on = 'game_idx',how = 'left')
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success merge team_game_info_df & game_info_df')
         self.game_info_array = np.array(game_info)
         
         
@@ -206,16 +211,18 @@ class Database(bs.Baseball):
         score_query = f'SELECT * from score_record where team_game_idx >= {start_team_game_idx}'
         score_df = pd.read_sql(score_query, conn)
         self.score_array = np.array(pd.merge(game_info , score_df, on = 'team_game_idx',how = 'left'))
-        
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load & merge game_info_df & score_df')
         
         
         batter_query = f'SELECT * from batter_record where team_game_idx >= {start_team_game_idx}'
         batter_df = pd.read_sql(batter_query, conn)
         self.batter_array = np.array(pd.merge(game_info , batter_df, on = 'team_game_idx',how = 'left'))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load & merge game_info_df & batter_df')
         
         pitcher_query = f'SELECT * from pitcher_record where team_game_idx >= {start_team_game_idx}'
         pitcher_df = pd.read_sql(pitcher_query, conn)
         self.pitcher_array = np.array(pd.merge(game_info , pitcher_df, on = 'team_game_idx',how = 'left'))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load & merge game_info_df & pitcher_df')
         
         conn.close()
     
