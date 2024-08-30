@@ -216,13 +216,15 @@ class Database(bs.Baseball):
         
         batter_query = f'SELECT * from batter_record where team_game_idx >= {start_team_game_idx}'
         batter_df = pd.read_sql(batter_query, conn)
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load batter_df')
         self.batter_array = np.array(pd.merge(game_info , batter_df, on = 'team_game_idx',how = 'left'))
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load & merge game_info_df & batter_df')
         
         pitcher_query = f'SELECT * from pitcher_record where team_game_idx >= {start_team_game_idx}'
         pitcher_df = pd.read_sql(pitcher_query, conn)
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load pitcher_df')
         self.pitcher_array = np.array(pd.merge(game_info , pitcher_df, on = 'team_game_idx',how = 'left'))
-        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success load & merge game_info_df & pitcher_df')
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'success merge game_info_df & pitcher_df')
         
         conn.close()
     
