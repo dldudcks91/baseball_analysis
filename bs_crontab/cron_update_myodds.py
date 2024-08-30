@@ -99,7 +99,7 @@ rr = 20
 
 #%%
 b.load_today_array(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
-lineup_record = [0]
+lineup_record = [0 for i in range(11)]
 
 print('complete get lineup_record')
 #%%
@@ -113,10 +113,8 @@ b.today_array = b.today_array[new_idx]
 for i in range(1,11):
     try:
         game_num = b.today_array[b.today_array[:,3]==i,5][0]
-        lineup_record.append([b.xr_by_game(2024,i,game_num),b.sp_by_game(2024,i,game_num).reshape(-1),b.rp_by_game(2024,i,game_num)])
-    except:
-        print(f"today no game {i}th team")
-        continue
+        lineup_record[i] = [b.xr_by_game(2024,i,game_num),b.sp_by_game(2024,i,game_num).reshape(-1),b.rp_by_game(2024,i,game_num)]
+    
 
         
 #%%
