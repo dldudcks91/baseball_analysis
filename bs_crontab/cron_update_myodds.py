@@ -109,12 +109,13 @@ b.today_array = b.today_array[new_idx]
 
 
 #%%
-today_game_max_idx = len(b.today_array)
-for i in range(1,today_game_max_idx+1):
+
+for i in range(1,11):
     try:
         game_num = b.today_array[b.today_array[:,3]==i,5][0]
         lineup_record.append([b.xr_by_game(2024,i,game_num),b.sp_by_game(2024,i,game_num).reshape(-1),b.rp_by_game(2024,i,game_num)])
     except:
+        print(f"today no game {i}th team")
         continue
 
         
