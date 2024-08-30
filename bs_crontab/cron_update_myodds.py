@@ -114,9 +114,10 @@ for i in range(1,11):
     try:
         game_num = b.today_array[b.today_array[:,3]==i,5][0]
         lineup_record[i] = [b.xr_by_game(2024,i,game_num),b.sp_by_game(2024,i,game_num).reshape(-1),b.rp_by_game(2024,i,game_num)]
-    
-
+    except:
         
+        continue
+
 #%%
 def get_new_input(lineup_record, ground_array, team_num, foe_num, is_home, xr_type = 0, sp_type = 0):
     
