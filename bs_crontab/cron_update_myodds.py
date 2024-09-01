@@ -42,7 +42,7 @@ d = bs.Database()
 
 
 #%%
-d.load_data_this_year(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address, year = 2024)
+d.load_data_this_year_new(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address, year = 2024)
 #d.load_data_all(db_address = cd.db_address, code = cd.aws_code, file_address = cd.file_aws_address)
 process = psutil.Process()
 memory_info = process.memory_info()

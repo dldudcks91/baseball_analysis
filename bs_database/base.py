@@ -234,6 +234,67 @@ class Database(bs.Baseball):
         
         conn.close()
     
+    def load_data_this_year_new(self, db_address, code, file_address, year):
+        '''
+        
+        baseball DataBase에 있는 해당 년도 테이블 불러오기
+        
+        Load to Record of team_game_info / batter / pitcher / score by Mysql
+        
+        Set game_info_array / batter_array / pitcher_array / score_array
+        
+            
+        '''
+        def load_data(query, conn):
+            """SQL 쿼리를 실행하고 결과를 DataFrame으로 반환하는 함수"""
+            return pd.read_sql(query, conn)
+        engine = create_engine(db_address + code + file_address)
+        with engine.connect() as conn:
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Start loading data')
+    
+            # 쿼리 시작 인덱스 설정
+            start_game_idx = year * 10000000000
+            start_team_game_idx = year * 100000
+    
+            # 필요한 모든 데이터 한 번에 로드
+            game_info_query = f'SELECT game_idx, stadium FROM game_info WHERE game_idx >= {start_game_idx}'
+            team_game_info_query = f'SELECT * FROM team_game_info WHERE team_game_idx >= {start_team_game_idx}'
+            score_query = f'SELECT * FROM score_record WHERE team_game_idx >= {start_team_game_idx}'
+            batter_query = f'SELECT * FROM batter_record WHERE team_game_idx >= {start_team_game_idx}'
+            pitcher_query = f'SELECT * FROM pitcher_record WHERE team_game_idx >= {start_team_game_idx}'
+    
+            # 데이터 로드
+            game_info_df = load_data(game_info_query, conn)
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading game_info_df')
+    
+            team_game_info_df = load_data(team_game_info_query, conn)
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading team_game_info_df')
+    
+            score_df = load_data(score_query, conn)
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading score_df')
+    
+            batter_df = load_data(batter_query, conn)
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading batter_df')
+    
+            pitcher_df = load_data(pitcher_query, conn)
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading pitcher_df')
+    
+        # 데이터 병합
+        game_info = pd.merge(team_game_info_df, game_info_df, on='game_idx', how='left')
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success merge team_game_info_df & game_info_df')
+        
+        self.game_info_array = np.array(game_info)
+        
+        self.score_array = np.array(pd.merge(game_info, score_df, on='team_game_idx', how='left'))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success merge game_info & score_df')
+        
+        self.batter_array = np.array(pd.merge(game_info, batter_df, on='team_game_idx', how='left'))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success merge game_info & batter_df')
+        
+        self.pitcher_array = np.array(pd.merge(game_info, pitcher_df, on='team_game_idx', how='left'))
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success merge game_info & pitcher_df')
+
+    
     def load_today_array(self,db_address, code, file_address):
         
         '''
