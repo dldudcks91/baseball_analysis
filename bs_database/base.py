@@ -250,18 +250,18 @@ class Database(bs.Baseball):
             return pd.read_sql(query, conn)
         engine = create_engine(db_address + code + file_address)
         
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Start loading data')
-    
-            # 쿼리 시작 인덱스 설정
-            start_game_idx = year * 10000000000
-            start_team_game_idx = year * 100000
-    
-            # 필요한 모든 데이터 한 번에 로드
-            game_info_query = f'SELECT game_idx, stadium FROM game_info WHERE game_idx >= {start_game_idx}'
-            team_game_info_query = f'SELECT * FROM team_game_info WHERE team_game_idx >= {start_team_game_idx}'
-            score_query = f'SELECT * FROM score_record WHERE team_game_idx >= {start_team_game_idx}'
-            batter_query = f'SELECT * FROM batter_record WHERE team_game_idx >= {start_team_game_idx}'
-            pitcher_query = f'SELECT * FROM pitcher_record WHERE team_game_idx >= {start_team_game_idx}'
+        print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Start loading data')
+
+        # 쿼리 시작 인덱스 설정
+        start_game_idx = year * 10000000000
+        start_team_game_idx = year * 100000
+
+        # 필요한 모든 데이터 한 번에 로드
+        game_info_query = f'SELECT game_idx, stadium FROM game_info WHERE game_idx >= {start_game_idx}'
+        team_game_info_query = f'SELECT * FROM team_game_info WHERE team_game_idx >= {start_team_game_idx}'
+        score_query = f'SELECT * FROM score_record WHERE team_game_idx >= {start_team_game_idx}'
+        batter_query = f'SELECT * FROM batter_record WHERE team_game_idx >= {start_team_game_idx}'
+        pitcher_query = f'SELECT * FROM pitcher_record WHERE team_game_idx >= {start_team_game_idx}'
         with engine.connect() as conn:
             # 데이터 로드
             game_info_df = load_data(game_info_query, conn)
