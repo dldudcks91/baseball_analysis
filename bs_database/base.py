@@ -249,7 +249,7 @@ class Database(bs.Baseball):
             """SQL 쿼리를 실행하고 결과를 DataFrame으로 반환하는 함수"""
             return pd.read_sql(query, conn)
         engine = create_engine(db_address + code + file_address)
-        with engine.connect() as conn:
+        
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Start loading data')
     
             # 쿼리 시작 인덱스 설정
@@ -262,20 +262,20 @@ class Database(bs.Baseball):
             score_query = f'SELECT * FROM score_record WHERE team_game_idx >= {start_team_game_idx}'
             batter_query = f'SELECT * FROM batter_record WHERE team_game_idx >= {start_team_game_idx}'
             pitcher_query = f'SELECT * FROM pitcher_record WHERE team_game_idx >= {start_team_game_idx}'
-    
+        with engine.connect() as conn:
             # 데이터 로드
             game_info_df = load_data(game_info_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading game_info_df')
-    
+        with engine.connect() as conn:
             team_game_info_df = load_data(team_game_info_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading team_game_info_df')
-    
+        with engine.connect() as conn:
             score_df = load_data(score_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading score_df')
-    
+        with engine.connect() as conn:
             batter_df = load_data(batter_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading batter_df')
-    
+        with engine.connect() as conn:
             pitcher_df = load_data(pitcher_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading pitcher_df')
     
