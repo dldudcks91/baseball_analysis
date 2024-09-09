@@ -3,6 +3,7 @@ import sys
 import os 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+script_dir = os.path.dirname(os.path.abspath(__file__)) 
 #%%
 
 from bs4 import BeautifulSoup
@@ -16,7 +17,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 #%%
 import  json
-WISE_IDX_URL = 'wise_idx.json'
+WISE_IDX_URL = f'{script_dir}\wise_idx.json'
 
 #%%
 result_list = list()
@@ -198,12 +199,14 @@ for i, game_info_master_seq in enumerate(range(start_game_info_master_seq, start
 print(game_info_master_seq, len(result_list), response.status_code)
 print('success crawling odds data')
 #%%
+
+
 result_data = pd.DataFrame(result_list)
 today = int(datetime.today().strftime("%Y%m%d"))
 last_idx = int(result_data[result_data['date'] == today].game_info_master_seq.iloc[0])
 
 with open(WISE_IDX_URL, 'w') as f:
-        json.dump({'last_game_info_master_seq': 27478}, f)  
+        json.dump({'last_game_info_master_seq': last_idx}, f)  
 
 print('success save last_idx')
 #%%
