@@ -281,9 +281,9 @@ class Database(bs.Baseball):
             
             
         
-            #batter_df = load_data(batter_query, conn)
+            batter_df = load_data(batter_query, conn)
             #batter_df = load_data_fetch(batter_query, conn)
-            #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading batter_df')
+            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading batter_df')
         
             pitcher_df = load_data(pitcher_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading pitcher_df')
