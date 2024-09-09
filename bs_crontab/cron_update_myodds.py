@@ -118,7 +118,7 @@ for i in range(1,11):
     except:
         
         continue
-
+print(lineup_record)
 #%%
 def get_new_input(lineup_record, ground_array, team_num, foe_num, is_home, xr_type = 0, sp_type = 0):
     
