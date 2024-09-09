@@ -288,7 +288,7 @@ class Database(bs.Baseball):
             pitcher_df = load_data(pitcher_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading pitcher_df')
     
-        데이터 병합
+        #데이터 병합
         game_info = pd.merge(team_game_info_df, game_info_df, on='game_idx', how='left')
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success merge team_game_info_df & game_info_df')
         
