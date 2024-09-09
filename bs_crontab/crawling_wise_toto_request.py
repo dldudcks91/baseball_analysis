@@ -2,16 +2,17 @@
 import sys
 import os 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+print(sys.path)
 script_dir = os.path.dirname(os.path.abspath(__file__)) 
 #%%
 
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
-import numpy as np 
-import time
+
 from datetime import datetime, timedelta
+
+from bs_personal import personal_code as cd
 #from bs_crawling import base as cb
 
 from sqlalchemy import create_engine
@@ -227,7 +228,7 @@ result_data.columns = mysql_columns
 
 print('success data preprocess')
 #%%
-from bs_personal import personal_code as cd
+
 db_address = cd.db_address
 code = cd.aws_code
 file_address = cd.file_aws_address
