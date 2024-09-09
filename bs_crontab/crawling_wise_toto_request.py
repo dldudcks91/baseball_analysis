@@ -201,8 +201,9 @@ print('success crawling odds data')
 result_data = pd.DataFrame(result_list)
 today = int(datetime.today().strftime("%Y%m%d"))
 last_idx = int(result_data[result_data['date'] == today].game_info_master_seq.iloc[0])
+
 with open(WISE_IDX_URL, 'w') as f:
-        json.dump({'last_game_info_master_seq': last_idx}, f)  
+        json.dump({'last_game_info_master_seq': 27478}, f)  
 
 print('success save last_idx')
 #%%
