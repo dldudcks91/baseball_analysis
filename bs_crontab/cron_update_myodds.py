@@ -31,7 +31,7 @@ with open('total_params_list.pkl','rb') as f:
     
 # with open(cd.total_param_list_url,'rb') as f:
 #     total_params_list = pickle.load(f)
-    #%%
+ 
     
 #%%
 
@@ -74,7 +74,7 @@ b.score_array = d.score_array
 
 b.set_dic_all()
 #%%
-
+z = b.batter_array
 #%%
 b.is_new_game = True
 b.is_iv = False
