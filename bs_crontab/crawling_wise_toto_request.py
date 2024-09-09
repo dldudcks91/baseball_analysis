@@ -11,7 +11,7 @@ import requests
 import pandas as pd
 import numpy as np 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 #from bs_crawling import base as cb
 
 from sqlalchemy import create_engine
@@ -198,17 +198,24 @@ for i, game_info_master_seq in enumerate(range(start_game_info_master_seq, start
 
 print(game_info_master_seq, len(result_list), response.status_code)
 print('success crawling odds data')
+
 #%%
 
 
 result_data = pd.DataFrame(result_list)
 today = int(datetime.today().strftime("%Y%m%d"))
-last_idx = int(result_data[result_data['date'] == today].game_info_master_seq.iloc[0])
 
-with open(WISE_IDX_URL, 'w') as f:
-        json.dump({'last_game_info_master_seq': last_idx}, f)  
+today_data = result_data[result_data['date'] == today]
+if not  today_data.empty:
+    
+    last_idx = int(today_data.game_info_master_seq.iloc[0])
+        
+    
 
-print('success save last_idx')
+    with open(WISE_IDX_URL, 'w') as f:
+            json.dump({'last_game_info_master_seq': last_idx}, f)  
+    
+    print('success save last_idx')
 #%%
 
 result_data = result_data[result_data.is_odds == True]
