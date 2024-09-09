@@ -44,7 +44,7 @@ class Database(bs.Baseball):
         
         cursor = conn.cursor()
         
-        sql = sql
+        
         cursor.execute(sql)
         result = cursor.fetchall()
         return result
@@ -139,7 +139,7 @@ class Database(bs.Baseball):
         data_pd.to_sql(name=table_name,con = engine,if_exists ='append',index = False)
         
         
-    def load_data_all(self,db_address, code, file_address):
+    def load_data_all(self,db_address, code, file_address,pyconn):
         '''
         
         baseball DataBase에 있는 모든 분석용 테이블 불러오기
@@ -249,7 +249,13 @@ class Database(bs.Baseball):
             """SQL 쿼리를 실행하고 결과를 DataFrame으로 반환하는 함수"""
             return pd.read_sql(query, conn)
         engine = create_engine(db_address + code + file_address)
-        
+        def load_data_fetch(query, conn):
+            
+            cursor = conn.cursor()
+            
+            cursor.execute(query)
+            result_data = pd.DataFrame(cursor.fetchall())
+            return result_data
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Start loading data')
 
         # 쿼리 시작 인덱스 설정
@@ -266,16 +272,19 @@ class Database(bs.Baseball):
             # 데이터 로드
             game_info_df = load_data(game_info_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading game_info_df')
-        with engine.connect() as conn:
+        
             team_game_info_df = load_data(team_game_info_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading team_game_info_df')
-        with engine.connect() as conn:
+        
             score_df = load_data(score_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading score_df')
-        with engine.connect() as conn:
-            batter_df = load_data(batter_query, conn)
-            print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading batter_df')
-        with engine.connect() as conn:
+            
+            
+        
+            #batter_df = load_data(batter_query, conn)
+            #batter_df = load_data_fetch(batter_query, conn)
+            #print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading batter_df')
+        
             pitcher_df = load_data(pitcher_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading pitcher_df')
     
