@@ -17,7 +17,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 #%%
 import  json
-WISE_IDX_URL = f'{script_dir}\wise_idx.json'
+WISE_IDX_URL = os.path.join(script_dir, 'wise_idx.json') 
 
 #%%
 result_list = list()
