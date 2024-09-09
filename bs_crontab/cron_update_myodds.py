@@ -352,8 +352,7 @@ for game_info in b.today_game_info:
             record_list = [under,over,round(total_mean,1),now]
         new_toto_list = info_list + record_list
         toto_array = np.vstack([toto_array,new_toto_list])
-    print(away_name,": ", np.round(away_run,4)," ", home_name,": ", np.round(home_run,4))
-toto_array = toto_array[1:]
+    print(away_name,": ", np.round(away_run,4)," ", home_name,": ", np.round(home_run,4)) 
 #%%
 #onn_local = pymysql.connect(host= cd.local_host, user=cd.local_user, password= cd.local_code, db= cd.db, charset='utf8')
 conn_aws = pymysql.connect(host = cd.aws_host, user = cd.aws_user, password = cd.aws_code , db = cd.db, charset = cd.charset)

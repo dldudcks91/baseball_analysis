@@ -263,11 +263,11 @@ class Database(bs.Baseball):
         start_team_game_idx = year * 100000
 
         # 필요한 모든 데이터 한 번에 로드
-        game_info_query = f'SELECT game_idx, stadium FROM game_info WHERE game_idx >= {start_game_idx}'
-        team_game_info_query = f'SELECT * FROM team_game_info WHERE team_game_idx >= {start_team_game_idx}'
-        score_query = f'SELECT * FROM score_record WHERE team_game_idx >= {start_team_game_idx}'
-        batter_query = f'SELECT * FROM batter_record WHERE team_game_idx >= {start_team_game_idx}'
-        pitcher_query = f'SELECT * FROM pitcher_record WHERE team_game_idx >= {start_team_game_idx}'
+        game_info_query = f'SELECT game_idx, stadium FROM game_info WHERE game_idx >= {start_game_idx} order by game_idx'
+        team_game_info_query = f'SELECT * FROM team_game_info WHERE team_game_idx >= {start_team_game_idx} order by team_game_idx'
+        score_query = f'SELECT * FROM score_record WHERE team_game_idx >= {start_team_game_idx} order by team_game_idx'
+        batter_query = f'SELECT * FROM batter_record WHERE team_game_idx >= {start_team_game_idx} order by team_game_idx'
+        pitcher_query = f'SELECT * FROM pitcher_record WHERE team_game_idx >= {start_team_game_idx} order by team_game_idx'
         with engine.connect() as conn:
             # 데이터 로드
             game_info_df = load_data(game_info_query, conn)
@@ -288,7 +288,7 @@ class Database(bs.Baseball):
             pitcher_df = load_data(pitcher_query, conn)
             print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success loading pitcher_df')
     
-        # 데이터 병합
+        데이터 병합
         game_info = pd.merge(team_game_info_df, game_info_df, on='game_idx', how='left')
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success merge team_game_info_df & game_info_df')
         
@@ -302,7 +302,7 @@ class Database(bs.Baseball):
         
         self.pitcher_array = np.array(pd.merge(game_info, pitcher_df, on='team_game_idx', how='left'))
         print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Success merge game_info & pitcher_df')
-
+        
     
     def load_today_array(self,db_address, code, file_address):
         
