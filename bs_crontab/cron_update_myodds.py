@@ -72,6 +72,19 @@ b.batter_array = d.batter_array
 b.pitcher_array = d.pitcher_array
 b.score_array = d.score_array
 
+#%%
+process = psutil.Process()
+memory_info = process.memory_info()
+
+print(f"RSS (Resident Set Size): {memory_info.rss / (1024 * 1024):.2f} MB")
+print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
+del(d)
+
+process = psutil.Process()
+memory_info = process.memory_info()
+
+print(f"RSS (Resident Set Size): {memory_info.rss / (1024 * 1024):.2f} MB")
+print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 b.set_dic_all()
 #%%
 z = b.batter_array
