@@ -6,14 +6,11 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
-
 import numpy as np
 import pandas as pd
 import pymysql
 
 from bs_database import base as bs
-
 from bs_stats import preprocess as pr
 from bs_stats import sample as sp
 from bs_personal import personal_code as cd
@@ -23,14 +20,7 @@ import datetime
 import psutil
 import time
 #%%
-import pickle
 
-
-with open('total_params_list.pkl','rb') as f:
-    total_params_list = pickle.load(f)
-    
-# with open(cd.total_param_list_url,'rb') as f:
-#     total_params_list = pickle.load(f)
  
     
 #%%
@@ -62,6 +52,16 @@ print(f"VMS (Virtual Memory Size): {memory_info.vms / (1024 * 1024):.2f} MB")
 # print(time.time() - start_time)
 
 # print('success load data all')
+#%%
+
+import pickle
+
+
+with open('total_params_list.pkl','rb') as f:
+    total_params_list = pickle.load(f)
+    
+# with open(cd.total_param_list_url,'rb') as f:
+#     total_params_list = pickle.load(f)
 #%%
 a = an.Analytics()
 s = sp.Sample()
