@@ -14,10 +14,10 @@ from bs_stats import sample as sp
 from bs_stats import preprocess as pr
 
 
-#%%
-s = sp.Sample()
-sm.families.Gamma.safe_links.append(sm.genmod.families.links.identity)
-sm.families.Gamma.safe_links.append(sm.genmod.families.links.inverse_power)
+# #%%
+# s = sp.Sample()
+# sm.families.Gamma.safe_links.append(sm.genmod.families.links.identity)
+# sm.families.Gamma.safe_links.append(sm.genmod.families.links.inverse_power)
 #%%
 class Analytics(pr.Preprocess):
     

@@ -5,20 +5,26 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+#%%
 
 import numpy as np
 import pandas as pd
 import pymysql
-
-from bs_database import base as bs
-from bs_stats import preprocess as pr
-from bs_stats import sample as sp
-from bs_personal import personal_code as cd
-from bs_stats import analytics as an
-
 import datetime
 import psutil
 import time
+#%%
+from bs_personal import personal_code as cd
+from bs_database import base as bs
+
+from bs_stats import preprocess as pr
+
+from bs_stats import sample as sp
+
+#%%
+from bs_stats import analytics as an
+
+
 #%%
 
  
@@ -63,7 +69,7 @@ with open('total_params_list.pkl','rb') as f:
 # with open(cd.total_param_list_url,'rb') as f:
 #     total_params_list = pickle.load(f)
 #%%
-a = an.Analytics()
+
 s = sp.Sample()
 b = pr.Preprocess() 
 b.year_list = [2024]
@@ -87,9 +93,9 @@ b.is_epa_rp = False
 br_range = [20]#[1] + [i for i in range(5,101,5)]#[50]#[30]#[50]
 sp_range = [i for i in range(1,21)]
 rp_range = [20]#[50]#[30]
-a.sr_type = 1
-a.xr_type = 0
-a.sp_type = 0
+sr_type = 1
+xr_type = 0
+sp_type = 0
 b.set_rp_data_dic()
 #%%
 br = 20
@@ -223,8 +229,6 @@ now = str(today.hour).zfill(2) + ":" +str(today.minute).zfill(2)
 s.size = 100000
 toto_array = np.zeros((1,10))
 
-sr_type = a.sr_type
-
 MODEL_CV = 1
 
 for game_info in b.today_game_info:
@@ -249,7 +253,7 @@ for game_info in b.today_game_info:
         ground_array[0,pf] = 1
     
     
-    away_input = get_new_input(lineup_record, ground_array, away_num, home_num, is_home = False, xr_type = a.xr_type, sp_type = a.sp_type)
+    away_input = get_new_input(lineup_record, ground_array, away_num, home_num, is_home = False, xr_type = xr_type, sp_type = sp_type)
     
     sp_len = away_input[0,-1]
     if sp_len <=1: sp_len = 1
@@ -293,7 +297,7 @@ for game_info in b.today_game_info:
     
     
     
-    home_input = get_new_input(lineup_record, ground_array, home_num, away_num, is_home = True, xr_type = a.xr_type, sp_type = a.sp_type)
+    home_input = get_new_input(lineup_record, ground_array, home_num, away_num, is_home = True, xr_type = xr_type, sp_type = sp_type)
     sp_len = home_input[0,-1]
     if sp_len <=1: sp_len = 1
     home_run = 0
