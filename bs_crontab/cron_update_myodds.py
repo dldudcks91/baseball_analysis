@@ -60,7 +60,7 @@ d.load_data_this_year_new(db_address = cd.db_address, code = cd.aws_code, file_a
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) 
-PARAMS_LIST_URL = os.path.join(script_dir, 'toto_params_list.pkl') 
+PARAMS_LIST_URL = os.path.join(script_dir, 'total_params_list.pkl') 
 with open(PARAMS_LIST_URL,'rb') as f:
     total_params_list = pickle.load(f)
     
