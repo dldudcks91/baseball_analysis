@@ -150,7 +150,7 @@ def find_data_by_game(game_list, year):
         new_dic['is_odds'] = is_odds
     return new_dic
 #%%
-for i, game_info_master_seq in enumerate(range(start_game_info_master_seq, start_game_info_master_seq + 30)):
+for i, game_info_master_seq in enumerate(range(start_game_info_master_seq, start_game_info_master_seq + 100)):
     
     
     
@@ -234,6 +234,8 @@ file_address = cd.file_aws_address
 engine = create_engine(db_address + code + file_address)#, encoding = 'utf-8')
 
 result_data = result_data.drop_duplicates(subset = ['date','time','site_name','win_type','away_name','home_name','craw_time'])
+#%%
+print(result_data)
 #%%
 result_data.to_sql('today_toto',con = engine, if_exists = 'append', index = False)
 
